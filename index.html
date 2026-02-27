@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Cerna Squad — The Algorithm Is Just Math</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#02020a;--s1:#07070f;--s2:#0a0a14;
+  --border:#111120;--border2:#1a1a2e;
+  --red:#ff2d55;--cyan:#00e5ff;--gold:#ffd60a;
+  --green:#00ff88;--purple:#bd93f9;
+  --dim:#1e1e35;--mid:#555575;--muted:#9090b8;
+  --light:#d0d0ec;--white:#f2f2ff;
+  --red-glow:0 0 20px rgba(255,45,85,.5),0 0 60px rgba(255,45,85,.15);
+  --cyan-glow:0 0 20px rgba(0,229,255,.5),0 0 50px rgba(0,229,255,.12);
+  --gold-glow:0 0 16px rgba(255,214,10,.5);
+  --green-glow:0 0 16px rgba(0,255,136,.5);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--white);font-family:'Manrope',sans-serif}
+
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(rgba(0,229,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.018) 1px,transparent 1px);
+  background-size:44px 44px;
+  mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 30%,transparent 100%);
+}
+
+body::after{content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.06) 2px,rgba(0,0,0,.06) 4px);
+}
+
+#sweep{position:fixed;left:0;right:0;height:120px;z-index:9998;pointer-events:none;
+  background:linear-gradient(180deg,transparent,rgba(0,229,255,.04),transparent);
+  animation:sweepDown 7s linear infinite;
+}
+@keyframes sweepDown{0%{top:-120px}100%{top:100vh}}
+
+#gbar{position:fixed;top:0;left:0;height:2px;width:0%;z-index:10000;
+  background:linear-gradient(90deg,var(--red),var(--cyan),var(--gold));
+  box-shadow:0 0 16px rgba(0,229,255,.9);transition:width .4s ease;
+}
+
+.pg{position:fixed;inset:0;overflow:hidden;opacity:0;pointer-events:none;z-index:1;
+  transition:opacity .4s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;
+}
+.pg.active{opacity:1;pointer-events:all;z-index:10}
+.pg-scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;scrollbar-color:var(--border2) transparent;
+}
+.pg-scroll::-webkit-scrollbar{width:2px}
+.pg-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+.topnav{height:52px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;background:rgba(2,2,10,.88);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);z-index:50;position:relative;
+}
+.topnav::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:.25;
+}
+.tn-left{display:flex;align-items:center;gap:10px}
+.back-btn{background:none;border:none;color:var(--mid);font-family:'DM Mono',monospace;
+  font-size:.58rem;text-transform:uppercase;letter-spacing:.12em;cursor:pointer;
+  padding:8px 0;transition:color .2s,text-shadow .2s;
+}
+.back-btn:hover{color:var(--cyan);text-shadow:var(--cyan-glow)}
+.tn-tag{font-family:'DM Mono',monospace;font-size:.52rem;text-transform:uppercase;letter-spacing:.18em;color:var(--red)}
+.tn-right{display:flex;align-items:center;gap:6px}
+.live-chip{display:flex;align-items:center;gap:5px;background:rgba(0,255,136,.05);
+  border:1px solid rgba(0,255,136,.15);padding:4px 9px;border-radius:20px;
+  font-family:'DM Mono',monospace;font-size:.48rem;text-transform:uppercase;letter-spacing:.1em;color:var(--green);
+}
+.live-dot{width:5px;height:5px;border-radius:50%;background:var(--green);
+  animation:blink 1.2s ease-in-out infinite;box-shadow:var(--green-glow);
+}
+@keyframes blink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.15;transform:scale(.7)}}
+
+.inner{max-width:500px;margin:0 auto;padding:30px 22px 100px;position:relative;z-index:1}
+.eyebrow{font-family:'DM Mono',monospace;font-size:.5rem;text-transform:uppercase;
+  letter-spacing:.3em;color:var(--cyan);margin-bottom:10px;opacity:.65;
+}
+.pg-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.4rem,11vw,4.8rem);
+  letter-spacing:.02em;line-height:.88;margin-bottom:20px;position:relative;
+}
+.pg-title .r{color:var(--red);text-shadow:0 0 30px rgba(255,45,85,.6)}
+.pg-title .c{color:var(--cyan);text-shadow:0 0 30px rgba(0,229,255,.6)}
+.pg-title .g{color:var(--gold);text-shadow:0 0 30px rgba(255,214,10,.5)}
+.pg-title .ghost{color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.1)}
+.body-text{font-size:.84rem;line-height:1.85;color:var(--light);margin-bottom:16px}
+.body-text strong{color:var(--white);font-weight:700}
+.body-text em{color:var(--cyan);font-style:normal}
+
+.glitch-wrap{position:relative;display:inline-block}
+.glitch-wrap::before,.glitch-wrap::after{
+  content:attr(data-g);position:absolute;top:0;left:0;width:100%;
+  font:inherit;letter-spacing:inherit;line-height:inherit;
+}
+.glitch-wrap::before{color:var(--red);animation:g1 5s infinite;clip-path:polygon(0 20%,100% 20%,100% 40%,0 40%);transform:translate(-3px)}
+.glitch-wrap::after{color:var(--cyan);animation:g2 5s infinite;clip-path:polygon(0 60%,100% 60%,100% 80%,0 80%);transform:translate(3px)}
+@keyframes g1{0%,88%,100%{opacity:0}89%{opacity:.8;transform:translate(-4px,-1px)}91%{opacity:.8;transform:translate(-2px,0)}93%{opacity:.8;transform:translate(-5px,1px)}95%{opacity:0}}
+@keyframes g2{0%,88%,100%{opacity:0}90%{opacity:.6;transform:translate(4px,1px)}92%{opacity:.6;transform:translate(2px,0)}94%{opacity:.6;transform:translate(5px,-1px)}96%{opacity:0}}
+
+.source-badge{display:inline-flex;align-items:center;gap:5px;
+  background:rgba(0,229,255,.04);border:1px solid rgba(0,229,255,.12);
+  padding:4px 10px;border-radius:3px;
+  font-family:'DM Mono',monospace;font-size:.44rem;text-transform:uppercase;letter-spacing:.1em;
+  color:rgba(0,229,255,.65);margin-bottom:10px;position:relative;overflow:hidden;
+}
+.source-badge::after{content:'';position:absolute;top:0;left:-200%;width:80%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(0,229,255,.1),transparent);
+  animation:sbShimmer 5s ease-in-out infinite;
+}
+@keyframes sbShimmer{0%{left:-200%}100%{left:300%}}
+.source-badge a{color:rgba(0,229,255,.65);text-decoration:none}
+
+.data-card{
+  background:rgba(0,229,255,.02);
+  border:1px solid rgba(0,229,255,.1);
+  border-left:2px solid var(--cyan);
+  padding:14px 16px;margin:16px 0;border-radius:0 8px 8px 0;
+  position:relative;overflow:hidden;
+  box-shadow:inset 0 0 40px rgba(0,229,255,.02),0 0 20px rgba(0,229,255,.04);
+}
+.data-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,var(--cyan),transparent);opacity:.3;
+}
+.dc-head{font-family:'DM Mono',monospace;font-size:.48rem;text-transform:uppercase;
+  letter-spacing:.2em;color:var(--cyan);margin-bottom:8px;display:flex;align-items:center;gap:6px;
+  text-shadow:var(--cyan-glow);
+}
+.dc-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;
+  border-bottom:1px solid rgba(255,255,255,.03);font-family:'DM Mono',monospace;font-size:.63rem;
+}
+.dc-row:last-child{border-bottom:none}
+.dc-k{color:var(--mid)}.dc-v{color:var(--cyan);text-shadow:var(--cyan-glow)}
+
+.formula{
+  background:var(--s2);border:1px solid var(--border);
+  border-top:1px solid var(--red);
+  padding:18px;margin:16px 0;
+  font-family:'DM Mono',monospace;font-size:.67rem;line-height:2.1;
+  color:#e0e0f5;border-radius:0 0 8px 8px;overflow-x:auto;
+  position:relative;
+  box-shadow:inset 0 0 60px rgba(255,45,85,.03),0 8px 40px rgba(0,0,0,.6);
+}
+.formula::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,var(--red),transparent 60%);box-shadow:var(--red-glow);
+}
+.formula::after{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 38px,rgba(0,229,255,.008) 38px,rgba(0,229,255,.008) 39px);
+  pointer-events:none;
+}
+.fv{color:var(--gold);text-shadow:var(--gold-glow)}
+.fo{color:var(--red)}
+.ff{color:var(--cyan);text-shadow:var(--cyan-glow)}
+.cm{color:#6272a4;font-style:italic}
+
+.sbar-wrap{
+  background:var(--s1);border:1px solid var(--border);
+  padding:14px 16px;margin:14px 0;border-radius:8px;
+  position:relative;overflow:hidden;
+}
+.sbar-wrap::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 60% at 100% 50%,rgba(255,45,85,.04),transparent);
+  pointer-events:none;
+}
+.sbar-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.03)}
+.sbar-row:last-child{border-bottom:none}
+.sbar-name{font-size:.72rem;color:var(--light);min-width:120px;flex-shrink:0}
+.sbar-track{flex:1;height:3px;background:rgba(255,255,255,.04);border-radius:2px;overflow:visible;position:relative}
+.sbar-fill{height:100%;border-radius:2px;position:relative}
+.sbar-fill::after{content:'';position:absolute;right:0;top:-2px;width:6px;height:6px;border-radius:50%;background:inherit;filter:blur(3px)}
+.sbar-pct{font-family:'DM Mono',monospace;font-size:.56rem;min-width:34px;text-align:right;flex-shrink:0}
+
+.step{
+  background:var(--s1);border:1px solid var(--border);
+  padding:16px;margin:8px 0;border-radius:8px;
+  position:relative;overflow:hidden;transition:border-color .3s,box-shadow .3s;
+}
+.step:hover{border-color:var(--border2);box-shadow:0 4px 20px rgba(0,0,0,.4)}
+.step::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,229,255,.15),transparent);
+}
+.step-label{font-family:'DM Mono',monospace;font-size:.46rem;text-transform:uppercase;letter-spacing:.18em;color:var(--mid);margin-bottom:5px}
+.step-title{font-size:.86rem;font-weight:700;color:var(--white);margin-bottom:5px}
+.step-body{font-size:.74rem;color:var(--muted);line-height:1.7}
+
+.next-btn{
+  display:flex;align-items:center;justify-content:space-between;
+  width:100%;border:none;color:white;
+  padding:18px 24px;
+  font-family:'Bebas Neue',sans-serif;font-size:1.15rem;letter-spacing:.14em;
+  cursor:pointer;margin-top:24px;border-radius:6px;
+  background:linear-gradient(135deg,#ff2d55 0%,#cc1a35 100%);
+  position:relative;overflow:hidden;
+  box-shadow:0 4px 24px rgba(255,45,85,.35);
+  transition:transform .2s,box-shadow .2s;
+}
+.next-btn::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.12),transparent);
+  opacity:0;transition:opacity .3s;
+}
+.next-btn::after{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent);
+  transition:left .5s;
+}
+.next-btn:hover::before{opacity:1}
+.next-btn:hover::after{left:100%}
+.next-btn:hover{transform:translateY(-2px);box-shadow:var(--red-glow)}
+.next-btn:active{transform:scale(.98)}
+.next-btn.ghost{background:transparent;border:1px solid var(--border2);color:var(--light);box-shadow:none}
+
+.pool-list{display:flex;flex-direction:column;margin:16px 0}
+.pool-item{display:flex;align-items:stretch}
+.pool-spine{width:22px;display:flex;flex-direction:column;align-items:center;flex-shrink:0}
+.pool-node{width:10px;height:10px;border-radius:50%;background:var(--dim);border:1px solid var(--border2);
+  flex-shrink:0;margin-top:13px;transition:all .6s;
+}
+.pool-node.active{background:var(--red);border-color:var(--red);
+  box-shadow:0 0 12px rgba(255,45,85,.8),0 0 30px rgba(255,45,85,.3);
+  animation:nodePulse 2s ease-in-out infinite;
+}
+@keyframes nodePulse{0%,100%{box-shadow:0 0 10px rgba(255,45,85,.5)}50%{box-shadow:0 0 20px rgba(255,45,85,.9),0 0 50px rgba(255,45,85,.2)}}
+.pool-vline{flex:1;width:1px;background:linear-gradient(180deg,var(--border2),transparent);margin:2px auto}
+.pool-box{flex:1;padding:12px 14px;margin:3px 0 3px 8px;
+  background:var(--s1);border:1px solid var(--border);border-radius:8px;
+  transition:all .4s;position:relative;overflow:hidden;
+}
+.pool-box::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.05),transparent);
+}
+.pool-box.active{border-color:rgba(255,45,85,.25);background:rgba(255,45,85,.03)}
+.pool-name{font-family:'DM Mono',monospace;font-size:.55rem;text-transform:uppercase;letter-spacing:.14em;color:var(--mid);margin-bottom:2px}
+.pool-desc{font-size:.76rem;color:var(--light)}
+.pool-reach{font-family:'DM Mono',monospace;font-size:.53rem;color:var(--dim);margin-top:3px}
+
+.fact-box{
+  background:rgba(255,214,10,.03);
+  border:1px solid rgba(255,214,10,.14);
+  border-left:2px solid var(--gold);
+  padding:14px 16px;margin:12px 0;border-radius:0 8px 8px 0;
+  position:relative;overflow:hidden;
+}
+.fact-box::after{content:'';position:absolute;top:0;right:0;width:60px;bottom:0;
+  background:linear-gradient(270deg,rgba(255,214,10,.025),transparent);pointer-events:none;
+}
+.fact-box-head{font-family:'DM Mono',monospace;font-size:.44rem;text-transform:uppercase;
+  letter-spacing:.16em;color:var(--gold);margin-bottom:6px;text-shadow:var(--gold-glow);
+}
+.fact-box-body{font-size:.76rem;color:var(--light);line-height:1.7}
+
+@keyframes slideUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+.su{animation:slideUp .5s cubic-bezier(.16,1,.3,1) both}
+.su1{animation-delay:.06s}.su2{animation-delay:.13s}.su3{animation-delay:.21s}.su4{animation-delay:.3s}
+
+#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);
+  background:var(--green);color:#000;font-family:'DM Mono',monospace;font-size:.62rem;
+  text-transform:uppercase;letter-spacing:.1em;padding:9px 18px;border-radius:20px;
+  z-index:9000;transition:transform .4s cubic-bezier(.4,0,.2,1);white-space:nowrap;pointer-events:none;
+  box-shadow:var(--green-glow);
+}
+#toast.show{transform:translateX(-50%) translateY(0)}
+
+pre{background:var(--s2);border:1px solid var(--border);padding:18px;
+  font-family:'DM Mono',monospace;font-size:.61rem;line-height:1.95;color:#e0e0f5;
+  overflow-x:auto;border-radius:0 0 8px 8px;-webkit-overflow-scrolling:touch;white-space:pre;
+  position:relative;box-shadow:inset 0 0 80px rgba(0,0,0,.5);
+}
+pre::before{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 31px,rgba(0,229,255,.006) 31px,rgba(0,229,255,.006) 32px);
+  pointer-events:none;
+}
+.code-file{background:var(--s2);border:1px solid var(--border);border-bottom:none;
+  padding:8px 14px;display:flex;align-items:center;justify-content:space-between;border-radius:8px 8px 0 0;
+}
+.code-filename{font-family:'DM Mono',monospace;font-size:.54rem;color:var(--muted)}
+.code-dots{display:flex;gap:5px}
+.code-dot{width:9px;height:9px;border-radius:50%}
+.kw{color:#ff79c6}.fn2{color:var(--cyan)}.str{color:var(--green)}.num{color:var(--gold)}.cm2{color:#6272a4;font-style:italic}.cls{color:var(--red)}
+
+#pg-0{background:var(--bg)}
+#pg-0 .inner{min-height:100%;display:flex;flex-direction:column;justify-content:space-between;padding-top:0;position:relative;z-index:2}
+#land-canvas{position:fixed;inset:0;z-index:0}
+.land-top{padding-top:calc(env(safe-area-inset-top) + 52px)}
+.landing-badge{
+  display:inline-flex;align-items:center;gap:7px;
+  background:rgba(255,45,85,.08);border:1px solid rgba(255,45,85,.2);
+  padding:5px 12px;border-radius:20px;
+  font-family:'DM Mono',monospace;font-size:.52rem;text-transform:uppercase;letter-spacing:.18em;color:var(--red);
+  margin-bottom:20px;animation:fadeIn .6s ease .2s both;
+}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+#pg-0 .pg-title{
+  font-size:clamp(3.2rem,17vw,7rem);
+  animation:titleReveal .9s cubic-bezier(.16,1,.3,1) .4s both;
+}
+@keyframes titleReveal{from{opacity:0;transform:translateY(28px) skewY(1.5deg)}to{opacity:1;transform:none}}
+.landing-sub{font-size:.86rem;color:var(--muted);line-height:1.85;margin-bottom:0;animation:fadeIn .7s ease .8s both}
+.landing-sub strong{color:var(--light)}
+.data-card.land{animation:fadeIn .7s ease 1s both}
+.enter-btn{
+  width:100%;border:1px solid rgba(255,45,85,.35);
+  background:transparent;
+  color:var(--white);padding:20px 24px;
+  font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:.16em;
+  cursor:pointer;border-radius:6px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:relative;overflow:hidden;
+  transition:border-color .3s,box-shadow .3s;
+  animation:fadeIn .7s ease 1.3s both;
+}
+.enter-btn::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,45,85,.1),transparent 60%);
+  opacity:0;transition:opacity .3s;
+}
+.enter-btn::after{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);
+  transition:left .5s;
+}
+.enter-btn:hover::before{opacity:1}
+.enter-btn:hover::after{left:100%}
+.enter-btn:hover{border-color:var(--red);box-shadow:var(--red-glow)}
+.enter-btn:active{transform:scale(.98)}
+.land-foot{text-align:center;font-family:'DM Mono',monospace;font-size:.46rem;color:var(--dim);
+  letter-spacing:.14em;text-transform:uppercase;margin-top:12px;padding-bottom:40px;
+  animation:fadeIn .7s ease 1.5s both;
+}
+
+#pg-tiktok{background:#000}
+.tt-shell{position:relative;height:calc(100svh - 52px);overflow:hidden;background:#000}
+#tt-feed{position:absolute;inset:0;overflow:hidden;touch-action:pan-y}
+.tt-video{position:absolute;left:0;right:0;height:100%;transition:transform .4s cubic-bezier(.4,0,.2,1)}
+.tt-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.tt-bg-inner{position:absolute;inset:0;background-size:cover;background-position:center}
+.tt-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.2) 0%,transparent 25%,transparent 50%,rgba(0,0,0,.8) 100%)}
+.tt-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;padding:0 28px;pointer-events:none;z-index:5;width:100%}
+.tt-center-main{font-family:'Bebas Neue',sans-serif;font-size:clamp(1.8rem,8vw,2.8rem);letter-spacing:.04em;line-height:1.1;color:#fff;text-shadow:0 2px 30px rgba(0,0,0,.9);margin-bottom:10px}
+.tt-center-sub{font-family:'DM Mono',monospace;font-size:.62rem;text-transform:uppercase;letter-spacing:.14em;color:rgba(255,255,255,.5)}
+.tt-watching-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(0,0,0,.65);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.12);padding:6px 12px;border-radius:20px;font-family:'DM Mono',monospace;font-size:.54rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.65);margin-top:14px}
+.tt-info{position:absolute;bottom:80px;left:14px;right:70px}
+.tt-username{font-family:'Manrope',sans-serif;font-weight:700;font-size:.88rem;color:#fff;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.tt-follow-btn{background:var(--red);border:none;color:#fff;font-size:.56rem;font-family:'Manrope',sans-serif;font-weight:700;padding:2px 8px;border-radius:3px;cursor:pointer}
+.tt-caption{font-size:.76rem;color:rgba(255,255,255,.85);line-height:1.45;margin-bottom:6px}
+.tt-sound{font-size:.7rem;color:rgba(255,255,255,.55);display:flex;align-items:center;gap:5px}
+.tt-actions{position:absolute;right:10px;bottom:90px;display:flex;flex-direction:column;align-items:center;gap:16px}
+.tt-action{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;-webkit-user-select:none;user-select:none}
+.tt-action-icon{width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:1.55rem;transition:transform .15s}
+.tt-action:active .tt-action-icon{transform:scale(1.35)}
+.tt-action-count{font-family:'Manrope',sans-serif;font-size:.68rem;color:#fff;font-weight:600}
+.tt-avatar-wrap{position:relative;margin-bottom:6px;cursor:pointer}
+.tt-avatar{width:44px;height:44px;border-radius:50%;border:2px solid white;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;color:#fff}
+.tt-avatar-plus{position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);width:18px;height:18px;background:var(--red);border-radius:50%;border:2px solid #000;display:flex;align-items:center;justify-content:center;font-size:.75rem;color:#fff;font-weight:900;line-height:1}
+.tt-progress{position:absolute;bottom:0;left:0;right:0;height:2px;background:rgba(255,255,255,.1)}
+.tt-progress-fill{height:100%;background:white;width:0%;transition:width .1s linear}
+.tt-tabs{position:absolute;top:0;left:0;right:0;display:flex;justify-content:center;gap:20px;padding:14px 0;z-index:10;pointer-events:none}
+.tt-tab{font-family:'Manrope',sans-serif;font-weight:700;font-size:.86rem;color:rgba(255,255,255,.4)}
+.tt-tab.active{color:#fff;border-bottom:2px solid #fff;padding-bottom:2px}
+.tt-bottom-nav{position:absolute;bottom:0;left:0;right:0;height:60px;background:rgba(0,0,0,.95);display:flex;align-items:center;justify-content:space-around;border-top:1px solid rgba(255,255,255,.06);z-index:20}
+.tt-nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;font-family:'Manrope',sans-serif;font-size:.56rem;color:rgba(255,255,255,.4)}
+.tt-nav-item.active{color:#fff}
+.tt-nav-icon{font-size:1.25rem}
+.tt-nav-plus{width:40px;height:28px;background:linear-gradient(90deg,var(--cyan),var(--red));border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:#fff;font-weight:900;position:relative}
+.tt-nav-plus::before,.tt-nav-plus::after{content:'';position:absolute;width:42px;height:30px;border-radius:8px;top:-1px}
+.tt-nav-plus::before{background:var(--cyan);left:-4px;z-index:-1}
+.tt-nav-plus::after{background:var(--red);right:-4px;z-index:-2}
+.tt-hud{position:absolute;top:60px;left:12px;z-index:30;pointer-events:none}
+.tt-hud-chip{background:rgba(0,0,0,.78);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.06);border-left:2px solid var(--cyan);padding:5px 9px;margin-bottom:4px;border-radius:0 6px 6px 0;font-family:'DM Mono',monospace;font-size:.52rem;min-width:150px;box-shadow:0 2px 16px rgba(0,0,0,.5)}
+.tt-hud-label{color:var(--cyan);font-size:.44rem;text-transform:uppercase;letter-spacing:.12em;margin-bottom:1px;text-shadow:var(--cyan-glow)}
+.tt-hud-val{color:white;font-size:.63rem}
+.swipe-hint{position:absolute;left:50%;transform:translateX(-50%);bottom:75px;z-index:30;font-family:'DM Mono',monospace;font-size:.55rem;color:rgba(255,255,255,.35);text-align:center;animation:hintfade 3.5s ease 1s both;pointer-events:none}
+@keyframes hintfade{0%{opacity:0}20%{opacity:1}75%{opacity:1}100%{opacity:0}}
+.tt-reveal{position:absolute;inset:0;z-index:50;background:rgba(0,0,0,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;opacity:0;pointer-events:none;transition:opacity .35s;overflow-y:auto}
+.tt-reveal.show{opacity:1;pointer-events:all}
+.tt-reveal h2{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:.04em;text-align:center;margin-bottom:6px;text-shadow:var(--red-glow)}
+.tt-reveal p{font-size:.8rem;color:var(--muted);text-align:center;line-height:1.65;margin-bottom:22px}
+.reveal-grid{width:100%;max-width:360px;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px}
+.reveal-cell{background:var(--s1);border:1px solid var(--border);padding:12px;border-radius:8px;text-align:center;position:relative;overflow:hidden}
+.reveal-cell::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,229,255,.2),transparent)}
+.reveal-val{font-family:'Bebas Neue',sans-serif;font-size:1.9rem;line-height:1;margin-bottom:3px}
+.reveal-label{font-family:'DM Mono',monospace;font-size:.46rem;text-transform:uppercase;letter-spacing:.12em;color:var(--mid)}
+
+/* ─── HUMAN PAGE SPECIFIC ─── */
+.human-contrast{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}
+.hc-side{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:14px;position:relative;overflow:hidden}
+.hc-side.machine{border-top:2px solid var(--cyan)}
+.hc-side.human{border-top:2px solid var(--red)}
+.hc-side::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent)}
+.hc-label{font-family:'DM Mono',monospace;font-size:.43rem;text-transform:uppercase;letter-spacing:.15em;margin-bottom:8px}
+.hc-item{font-size:.7rem;color:var(--light);line-height:1.6;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;gap:6px;align-items:flex-start}
+.hc-item:last-child{border-bottom:none}
+.hc-item-dot{width:4px;height:4px;border-radius:50%;flex-shrink:0;margin-top:6px}
+
+.obstacle-card{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:10px;position:relative;overflow:hidden;display:flex;gap:14px;align-items:flex-start;transition:border-color .3s}
+.obstacle-card:hover{border-color:var(--border2)}
+.obstacle-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent)}
+.obstacle-card.red-ob{border-left:3px solid var(--red)}
+.obstacle-card.gold-ob{border-left:3px solid var(--gold)}
+.obstacle-card.cyan-ob{border-left:3px solid var(--cyan)}
+.obstacle-card.purple-ob{border-left:3px solid var(--purple)}
+.ob-emoji{font-size:1.8rem;flex-shrink:0;line-height:1;margin-top:2px}
+.ob-content{flex:1}
+.ob-title{font-size:.84rem;font-weight:700;color:var(--white);margin-bottom:5px;line-height:1.3}
+.ob-desc{font-size:.74rem;color:var(--muted);line-height:1.7}
+.ob-reality{font-family:'DM Mono',monospace;font-size:.46rem;text-transform:uppercase;letter-spacing:.1em;color:var(--mid);margin-top:8px;padding-top:7px;border-top:1px solid var(--border)}
+
+.algo-vs-human{background:var(--s1);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:16px 0}
+.avh-header{display:grid;grid-template-columns:1fr 40px 1fr;align-items:center;background:rgba(0,0,0,.3);padding:10px 14px;border-bottom:1px solid var(--border)}
+.avh-side-label{font-family:'DM Mono',monospace;font-size:.44rem;text-transform:uppercase;letter-spacing:.12em}
+.avh-vs{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--mid);text-align:center}
+.avh-row{display:grid;grid-template-columns:1fr 40px 1fr;align-items:center;padding:9px 14px;border-bottom:1px solid rgba(255,255,255,.03)}
+.avh-row:last-child{border-bottom:none}
+.avh-cell{font-size:.71rem;line-height:1.55}
+.avh-cell.machine-cell{color:var(--cyan)}
+.avh-cell.human-cell{color:var(--light)}
+.avh-mid{font-size:.6rem;color:var(--dim);text-align:center;font-family:'DM Mono',monospace}
+
+.reframe-box{background:linear-gradient(135deg,rgba(0,229,255,.05),rgba(189,147,249,.05));border:1px solid rgba(189,147,249,.2);border-radius:12px;padding:20px;margin:20px 0;text-align:center;position:relative;overflow:hidden}
+.reframe-box::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--purple),transparent);opacity:.5}
+.reframe-icon{font-size:2.2rem;margin-bottom:10px;display:block}
+.reframe-title{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:.04em;color:var(--white);line-height:1;margin-bottom:8px}
+.reframe-body{font-size:.78rem;color:var(--light);line-height:1.75}
+.reframe-body strong{color:var(--white)}
+</style>
+</head>
+<body>
+<div id="gbar"></div>
+<div id="sweep"></div>
+<div id="toast">✓ Logged</div>
+
+<canvas id="land-canvas"></canvas>
+<script>
+(function(){
+  const c=document.getElementById('land-canvas');
+  if(!c)return;
+  const ctx=c.getContext('2d');
+  let W,H,particles=[],lines=[];
+  const CYAN='rgba(0,229,255,',RED='rgba(255,45,85,',GOLD='rgba(255,214,10,';
+  const cols=[CYAN,RED,GOLD];
+  function resize(){W=c.width=window.innerWidth;H=c.height=window.innerHeight}
+  resize();window.addEventListener('resize',resize);
+  for(let i=0;i<55;i++){
+    const col=cols[Math.floor(Math.random()*cols.length)];
+    particles.push({x:Math.random()*W,y:Math.random()*H,
+      vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,
+      r:Math.random()*1.5+.3,col,alpha:Math.random()*.5+.1,
+      pulse:Math.random()*Math.PI*2,pSpeed:Math.random()*.01+.005
+    });
+  }
+  for(let i=0;i<6;i++){
+    lines.push({x:Math.random()*W,y:0,speed:Math.random()*.8+.3,
+      len:Math.random()*80+40,alpha:Math.random()*.15+.05,
+      col:cols[Math.floor(Math.random()*cols.length)]
+    });
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    lines.forEach(l=>{
+      const g=ctx.createLinearGradient(l.x,l.y,l.x,l.y+l.len);
+      g.addColorStop(0,'transparent');g.addColorStop(.5,l.col+l.alpha+')');g.addColorStop(1,'transparent');
+      ctx.beginPath();ctx.moveTo(l.x,l.y);ctx.lineTo(l.x,l.y+l.len);
+      ctx.strokeStyle=g;ctx.lineWidth=1;ctx.stroke();
+      l.y+=l.speed;if(l.y>H+l.len){l.y=-l.len;l.x=Math.random()*W}
+    });
+    for(let i=0;i<particles.length;i++){
+      for(let j=i+1;j<particles.length;j++){
+        const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y;
+        const d=Math.sqrt(dx*dx+dy*dy);
+        if(d<90){
+          ctx.beginPath();ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);
+          ctx.strokeStyle=`rgba(0,229,255,${(.04*(1-d/90)).toFixed(3)})`;ctx.lineWidth=.5;ctx.stroke();
+        }
+      }
+    }
+    particles.forEach(p=>{
+      p.pulse+=p.pSpeed;
+      const a=p.alpha*(0.6+0.4*Math.sin(p.pulse));
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=p.col+a+')';ctx.fill();
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0)p.x=W;if(p.x>W)p.x=0;
+      if(p.y<0)p.y=H;if(p.y>H)p.y=0;
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+</script>
+
+<!-- PAGE 0 — LANDING -->
+<div class="pg active" id="pg-0">
+  <div class="pg-scroll">
+    <div class="inner" id="landing-inner">
+      <div class="land-top">
+        <div class="landing-badge su"><span class="live-dot"></span>Cerna Squad · Gabe's Universe</div>
+        <div class="pg-title su su1">THE<br><span class="ghost">ALGO IS</span><br><span class="r glitch-wrap" data-g="JUST">JUST</span><br><span class="r">MATH</span></div>
+        <p class="landing-sub su su2">
+          Everyone treats the algorithm like it's <strong>magic</strong>.<br>
+          It's not. It's <strong>data and math</strong> — and we're going to prove it using <strong>your own behavior</strong>.
+        </p>
+        <div class="data-card land su su3">
+          <div class="dc-head"><span class="live-dot"></span>Collecting your data right now</div>
+          <div class="dc-row"><span class="dc-k">time_on_page</span><span class="dc-v" id="d-time">0s</span></div>
+          <div class="dc-row"><span class="dc-k">device_type</span><span class="dc-v" id="d-device">detecting…</span></div>
+          <div class="dc-row"><span class="dc-k">engagement_signal</span><span class="dc-v" id="d-eng">0.000</span></div>
+        </div>
+      </div>
+      <div class="su su4">
+        <button class="enter-btn" onclick="goPage(1)">ENTER THE EXPERIENCE <span>→</span></button>
+        <div class="land-foot">8 pages · live tracking · cerna squad</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 1 — THE FORMULA -->
+<div class="pg" id="pg-1">
+  <div class="topnav">
+    <div class="tn-left"><button class="back-btn" onclick="goPage(0)">← Back</button><span class="tn-tag">Page 1 of 7</span></div>
+    <div class="tn-right"><div class="live-chip"><span class="live-dot"></span><span id="p1-timer">0s</span></div></div>
+  </div>
+  <div class="pg-scroll"><div class="inner">
+    <div class="eyebrow su">The Big Truth</div>
+    <div class="pg-title su su1">IT'S A<br><span class="r">FORMULA</span></div>
+    <p class="body-text su su2">In December 2021, <em>The New York Times</em> reported on an internal TikTok training document referred to as <strong>"TikTok Algo 101."</strong> The document described how TikTok's recommendation system evaluated engagement signals using a probability × weight model.</p>
+    <p class="body-text su su2">A TikTok spokesperson acknowledged the document at the time, making it one of the clearest public descriptions of how the company explained its own ranking logic internally.</p>
+    <div class="source-badge su su2">📄 Reported by The New York Times (Dec 2021) · Document described as "TikTok Algo 101" · Acknowledged by TikTok spokesperson Hilary McQuaide</div>
+    <div class="code-file su su2">
+      <span class="code-filename">TikTok_Algo_101</span>
+      <div class="code-dots"><div class="code-dot" style="background:#ff5f56"></div><div class="code-dot" style="background:#ffbd2e"></div><div class="code-dot" style="background:#27c93f"></div></div>
+    </div>
+    <div class="formula su su2">
+<span class="cm">// As described in NYT reporting</span>
+<span class="cm">// TikTok has not publicly released exact weights or source code</span>
+<span class="cm">// Model structure described in internal training materials (per NYT)</span>
+
+<span class="fv">score</span> <span class="fo">=</span> (<span class="fv">Plike</span>     <span class="fo">×</span> <span class="ff">Vlike</span>)
+      <span class="fo">+</span> (<span class="fv">Pcomment</span>  <span class="fo">×</span> <span class="ff">Vcomment</span>)
+      <span class="fo">+</span> (<span class="fv">Eplaytime</span> <span class="fo">×</span> <span class="ff">Vplaytime</span>)  <span class="cm">← described as the dominant signal</span>
+      <span class="fo">+</span> (<span class="fv">Pplay</span>     <span class="fo">×</span> <span class="ff">Vplay</span>)
+
+<span class="cm">// P = probability of an action</span>
+<span class="cm">// V = value weight assigned to that action (not publicly disclosed)</span>
+<span class="cm">// Eplaytime = expected watch time, not just whether a video was played</span>
+</div>
+    <p class="body-text su su2">The document described a <em>probability × weight</em> framework rather than fixed percentages. According to the reporting, expected watch time (Eplaytime) was emphasized as the dominant signal relative to other actions.</p>
+    <p class="body-text su su2">TikTok's public <a href="https://newsroom.tiktok.com/en-us/how-tiktok-recommends-videos-for-you" style="color:var(--cyan)">"How TikTok Recommends Videos"</a> documentation independently confirms watch time and completion rate as core ranking signals. Exact weights have never been publicly disclosed.</p>
+    <div class="sbar-wrap su su3">
+      <div class="sbar-row"><span class="sbar-name">Watch Time / Completion</span><div class="sbar-track"><div class="sbar-fill" style="width:92%;background:var(--red)"></div></div><span class="sbar-pct" style="color:var(--red)">★★★★★</span></div>
+      <div class="sbar-row"><span class="sbar-name">Rewatches / Replays</span><div class="sbar-track"><div class="sbar-fill" style="width:80%;background:var(--red)"></div></div><span class="sbar-pct" style="color:var(--red)">★★★★★</span></div>
+      <div class="sbar-row"><span class="sbar-name">Shares</span><div class="sbar-track"><div class="sbar-fill" style="width:72%;background:var(--cyan)"></div></div><span class="sbar-pct" style="color:var(--cyan)">★★★★☆</span></div>
+      <div class="sbar-row"><span class="sbar-name">Saves</span><div class="sbar-track"><div class="sbar-fill" style="width:68%;background:var(--cyan)"></div></div><span class="sbar-pct" style="color:var(--cyan)">★★★★☆</span></div>
+      <div class="sbar-row"><span class="sbar-name">Comments</span><div class="sbar-track"><div class="sbar-fill" style="width:52%;background:var(--gold)"></div></div><span class="sbar-pct" style="color:var(--gold)">★★★☆☆</span></div>
+      <div class="sbar-row"><span class="sbar-name">Likes</span><div class="sbar-track"><div class="sbar-fill" style="width:38%;background:var(--muted)"></div></div><span class="sbar-pct" style="color:var(--muted)">★★☆☆☆</span></div>
+      <div class="sbar-row"><span class="sbar-name" style="color:#ff6b6b">Not Interested tap</span><div class="sbar-track"><div class="sbar-fill" style="width:80%;background:#ff6b6b"></div></div><span class="sbar-pct" style="color:#ff6b6b">penalty</span></div>
+    </div>
+    <div style="font-family:'DM Mono',monospace;font-size:.44rem;color:#6272a4;margin-bottom:18px">Signal ranking reflects TikTok's public How-It-Works documentation + reported Algo 101 structure. Exact weights are not publicly disclosed.</div>
+    <div class="fact-box su su4">
+      <div class="fact-box-head">📊 What appears to have shifted (2025–2026)</div>
+      <div class="fact-box-body">
+        <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:8px">
+          <div style="display:flex;gap:8px"><span style="color:var(--cyan);flex-shrink:0">—</span><span>Completion rates appear to be a higher bar for broader distribution.</span></div>
+          <div style="display:flex;gap:8px"><span style="color:var(--cyan);flex-shrink:0">—</span><span>Saves and shares are increasingly emphasized as stronger intent signals compared to likes.</span></div>
+          <div style="display:flex;gap:8px"><span style="color:var(--cyan);flex-shrink:0">—</span><span>Many creators report follower-first testing patterns, though TikTok has not published a formal changelog.</span></div>
+        </div>
+        <div style="font-family:'DM Mono',monospace;font-size:.44rem;color:#6272a4">These observations are drawn from creator documentation and reported behavior patterns — not official algorithm disclosures.</div>
+      </div>
+    </div>
+    <button class="next-btn su su4" onclick="goPage('algo')" style="margin-top:20px">NEXT: HOW ALL ALGORITHMS WORK <span>→</span></button>
+  </div></div>
+</div>
+
+<!-- PAGE 2 — HOW ALL ALGOS WORK -->
+<div class="pg" id="pg-algo">
+  <div class="topnav">
+    <div class="tn-left"><button class="back-btn" onclick="goPage(1)">← Back</button><span class="tn-tag">Page 2 of 7</span></div>
+    <div class="tn-right"><div class="live-chip"><span class="live-dot"></span><span id="palgo-timer">0s</span></div></div>
+  </div>
+  <div class="pg-scroll"><div class="inner">
+    <div class="eyebrow su">Not Just TikTok</div>
+    <div class="pg-title su su1">HOW <span class="c">ALL</span><br>ALGOS<br>WORK</div>
+    <p class="body-text su su2">TikTok, Instagram, YouTube, Netflix, Spotify — all running on the same core machine learning architecture. Not magic. Public, documented computer science that's been around for decades.</p>
+    <div style="font-family:'DM Mono',monospace;font-size:.5rem;text-transform:uppercase;letter-spacing:.18em;color:var(--mid);margin-bottom:10px">The 2 methods every platform combines</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px">
+      <div style="background:var(--s1);border:1px solid rgba(0,229,255,.2);border-top:2px solid var(--cyan);padding:14px;border-radius:0 0 8px 8px">
+        <div style="font-family:'DM Mono',monospace;font-size:.44rem;text-transform:uppercase;color:var(--cyan);margin-bottom:5px">Method 1</div>
+        <div style="font-size:.8rem;font-weight:700;color:var(--white);margin-bottom:5px">Collaborative Filtering</div>
+        <div style="font-size:.7rem;color:var(--muted);line-height:1.6">"People like you loved this." Finds users with similar behavior → recommends what they engaged with that you haven't seen yet.</div>
+        <div style="font-family:'DM Mono',monospace;font-size:.42rem;color:#6272a4;margin-top:7px;padding-top:6px;border-top:1px solid var(--border)">Used by: Netflix, Spotify, Amazon, YouTube</div>
+      </div>
+      <div style="background:var(--s1);border:1px solid rgba(255,214,10,.2);border-top:2px solid var(--gold);padding:14px;border-radius:0 0 8px 8px">
+        <div style="font-family:'DM Mono',monospace;font-size:.44rem;text-transform:uppercase;color:var(--gold);margin-bottom:5px">Method 2</div>
+        <div style="font-size:.8rem;font-weight:700;color:var(--white);margin-bottom:5px">Content-Based Filtering</div>
+        <div style="font-size:.7rem;color:var(--muted);line-height:1.6">"You liked that, here's something similar." Reads the content itself — topic, audio, text, visuals — and matches it to your watch history.</div>
+        <div style="font-family:'DM Mono',monospace;font-size:.42rem;color:#6272a4;margin-top:7px;padding-top:6px;border-top:1px solid var(--border)">TikTok leans heavily on this — interest graph, not social graph</div>
+      </div>
+    </div>
+    <div style="background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:14px">
+      <p style="font-size:.77rem;color:var(--light);line-height:1.7;margin-bottom:12px">Every platform builds a table: <strong style="color:var(--white)">rows = users, columns = content, cells = engagement score</strong>. Most cells are blank. The algorithm's one job: predict what goes in the blank cells.</p>
+      <div style="font-family:'DM Mono',monospace;font-size:.56rem;line-height:1.9;overflow-x:auto;white-space:pre;background:rgba(0,0,0,.35);padding:12px;border-radius:6px"><span style="color:#555580">          </span><span style="color:var(--cyan)">VideoA</span>  <span style="color:var(--cyan)">VideoB</span>  <span style="color:var(--cyan)">VideoC</span>  <span style="color:var(--cyan)">VideoD</span>
+<span style="color:var(--gold)">You       </span><span style="color:var(--green)"> 0.92  </span>  <span style="color:var(--green)"> 0.80  </span>  <span style="color:#8888bb">  ???  </span>  <span style="color:#8888bb">  ???  </span>
+<span style="color:var(--gold)">User_B    </span><span style="color:var(--green)"> 0.88  </span>  <span style="color:var(--green)"> 0.75  </span>  <span style="color:var(--green)"> 0.91  </span>  <span style="color:#8888bb">  ???  </span>
+<span style="color:var(--gold)">User_C    </span><span style="color:#8888bb">  ???  </span>  <span style="color:var(--green)"> 0.82  </span>  <span style="color:var(--green)"> 0.88  </span>  <span style="color:var(--green)"> 0.94  </span>
+
+<span style="color:#6272a4">You + User_B loved A+B → User_B loved C
+→ predict you'll love C too
+→ serve it to you. That's it. That's the algo.</span></div>
+    </div>
+    <div style="background:var(--s1);border:1px solid var(--border);border-left:3px solid var(--purple);padding:13px 16px;border-radius:0 8px 8px 0;margin-bottom:14px">
+      <div style="font-family:'DM Mono',monospace;font-size:.46rem;text-transform:uppercase;letter-spacing:.1em;color:var(--purple);margin-bottom:5px">The upgrade: Matrix Factorization + Embeddings</div>
+      <p style="font-size:.76rem;color:var(--light);line-height:1.7">That raw table is too huge. So platforms compress it using <strong style="color:var(--white)">matrix factorization</strong> — each user and each piece of content becomes a vector of numbers called an <em style="color:var(--cyan)">embedding</em>. Two embeddings close together in math space = similar taste.</p>
+    </div>
+    <div class="fact-box" style="margin-bottom:20px">
+      <div class="fact-box-head">⚠️ The Cold Start Problem — why new accounts get generic content</div>
+      <div class="fact-box-body">New user = blank row in the matrix = nothing to predict from. This is why your first 10 interactions on any platform disproportionately shape your entire feed.</div>
+    </div>
+    <div style="background:rgba(0,229,255,.04);border:1px solid rgba(0,229,255,.15);border-radius:10px;padding:15px 16px;margin-bottom:24px">
+      <div style="font-family:'DM Mono',monospace;font-size:.46rem;text-transform:uppercase;letter-spacing:.12em;color:var(--cyan);margin-bottom:7px">Why the same strategies work everywhere</div>
+      <p style="font-size:.78rem;color:var(--light);line-height:1.75">Every platform optimizes the <strong style="color:var(--white)">same objective</strong>: maximize predicted engagement per user per session. The math is the same. <strong style="color:var(--white)">That's why hooking in 3 seconds, making shareable content, and being loopable works on TikTok, Reels, and YouTube Shorts equally.</strong></p>
+    </div>
+    <button class="next-btn" onclick="goPage('tiktok')">NEXT: FEEL IT YOURSELF <span>→</span></button>
+  </div></div>
+</div>
+
+<!-- PAGE 3 — FAKE TIKTOK -->
+<div class="pg" id="pg-tiktok">
+  <div class="topnav" style="background:rgba(0,0,0,.95);border-color:#111">
+    <div class="tn-left">
+      <button class="back-btn" style="color:rgba(255,255,255,.45)" onclick="goPage('algo')">← Back</button>
+      <span class="tn-tag">Page 3 of 7 · LIVE FEED</span>
+    </div>
+    <div class="tn-right"><div class="live-chip"><span class="live-dot"></span><span>Recording</span></div></div>
+  </div>
+  <div class="tt-shell">
+    <div class="tt-tabs">
+      <div class="tt-tab">Following</div>
+      <div class="tt-tab active">For You</div>
+    </div>
+    <div id="tt-feed"></div>
+    <div class="tt-hud" id="tt-hud">
+      <div class="tt-hud-chip"><div class="tt-hud-label">watch_time</div><div class="tt-hud-val" id="hud-watch">0s / 0s</div></div>
+      <div class="tt-hud-chip"><div class="tt-hud-label">completion</div><div class="tt-hud-val" id="hud-comp">0%</div></div>
+      <div class="tt-hud-chip"><div class="tt-hud-label">feed_score</div><div class="tt-hud-val" id="hud-score">0.000</div></div>
+    </div>
+    <div class="swipe-hint" id="swipe-hint">↑ Swipe up · tap ❤️ · stay or scroll</div>
+    <div class="tt-bottom-nav">
+      <div class="tt-nav-item active"><div class="tt-nav-icon">🏠</div><span>Home</span></div>
+      <div class="tt-nav-item"><div class="tt-nav-icon">🔍</div><span>Discover</span></div>
+      <div class="tt-nav-item"><div class="tt-nav-plus">+</div></div>
+      <div class="tt-nav-item"><div class="tt-nav-icon">💬</div><span>Inbox</span></div>
+      <div class="tt-nav-item"><div class="tt-nav-icon">👤</div><span>Profile</span></div>
+    </div>
+    <div class="tt-reveal" id="tt-reveal">
+      <h2 style="color:var(--red)">THE ALGO<br>SAW EVERYTHING</h2>
+      <p>You just used TikTok. Here's what got logged.</p>
+      <div class="reveal-grid" id="tt-reveal-grid"></div>
+      <p style="font-size:.73rem;color:var(--mid);text-align:center;line-height:1.65;max-width:320px;margin-bottom:18px">Every swipe. Every pause. Every like.<br><strong style="color:var(--white)">This is the algorithm. It's just math.</strong></p>
+      <button class="next-btn" style="max-width:320px;width:100%" onclick="goPage(3)">SEE YOUR DATA <span>→</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 4 — YOUR SESSION: VIEWER SIDE -->
+<div class="pg" id="pg-3">
+  <div class="topnav">
+    <div class="tn-left"><button class="back-btn" onclick="goPage('tiktok')">← Back</button><span class="tn-tag">Page 4 of 7</span></div>
+    <div class="tn-right"><div class="live-chip"><span class="live-dot"></span><span id="p3-timer">0s</span></div></div>
+  </div>
+  <div class="pg-scroll"><div class="inner">
+    <div class="eyebrow su">Your Side of the Data</div>
+    <div class="pg-title su su1">WHAT THE<br><span class="r">ALGO KNOWS</span><br>ABOUT YOU</div>
+    <p class="body-text su su2">You never typed a word. Just scrolled for a minute. Here's the profile TikTok just built on you — and every inference it made in real time.</p>
+    <div id="stat-strip" class="su su2" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin:18px 0"></div>
+    <div id="session-result-card" style="display:none;margin-bottom:18px">
+      <div style="background:var(--s1);border:1px solid var(--border);border-left:3px solid var(--gold);padding:15px 17px;border-radius:0 8px 8px 0">
+        <div style="font-family:'DM Mono',monospace;font-size:.46rem;text-transform:uppercase;letter-spacing:.16em;color:var(--gold);margin-bottom:6px">⚡ your viewer_score</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:2.8rem;line-height:1;color:var(--gold)" id="session-final-score">—</div>
+        <div style="margin-top:8px;height:4px;background:var(--border);border-radius:2px;overflow:hidden"><div id="session-score-bar" style="height:100%;background:linear-gradient(90deg,var(--red),var(--gold));width:0%;transition:width 1.2s cubic-bezier(.4,0,.2,1)"></div></div>
+        <div style="font-size:.72rem;color:var(--light);margin-top:9px;line-height:1.6" id="session-verdict"></div>
+      </div>
+    </div>
+    <div id="inferred-data" class="su su2"></div>
+    <div id="hidden-signals" style="margin-top:4px"></div>
+    <button class="next-btn" onclick="goPage('3b')" style="margin-top:24px">NEXT: SEE THE CREATOR'S SIDE <span>→</span></button>
+  </div></div>
+</div>
+
+<!-- PAGE 5 — YOUR SESSION: CREATOR SIDE -->
+<div class="pg" id="pg-3b">
+  <div class="topnav">
+    <div class="tn-left"><button class="back-btn" onclick="goPage(3)">← Back</button><span class="tn-tag">Page 5 of 7</span></div>
+    <div class="tn-right"><div class="live-chip"><span class="live-dot"></span><span id="p3b-timer">0s</span></div></div>
+  </div>
+  <div class="pg-scroll"><div class="inner">
+    <div class="eyebrow su">The Other Side</div>
+    <div class="pg-title su su1">WHAT YOU DID<br><span class="r">TO THE</span><br><span class="r">CREATORS</span></div>
+    <p class="body-text su su2">Every skip you made, every video you half-watched — that didn't just affect your feed. It directly moved the score of a real creator trying to get their content pushed.</p>
+    <div id="creator-breakdown"></div>
+    <div style="margin-top:20px">
+      <div class="code-file">
+        <span class="code-filename">creator_score_impact.py</span>
+        <div class="code-dots"><div class="code-dot" style="background:#ff5f56"></div><div class="code-dot" style="background:#ffbd2e"></div><div class="code-dot" style="background:#27c93f"></div></div>
+      </div>
+      <pre id="creator-score-code" style="font-size:.59rem;line-height:1.85">// loading...</pre>
+    </div>
+    <div id="creator-verdict-card" style="display:none;margin-top:18px"></div>
+    <div style="background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-top:18px">
+      <div style="font-family:'DM Mono',monospace;font-size:.48rem;text-transform:uppercase;letter-spacing:.14em;color:var(--mid);margin-bottom:8px">The invisible chain</div>
+      <p style="font-size:.77rem;color:var(--light);line-height:1.75">A 2-second skip tells the algorithm: <strong style="color:var(--white)">"this creator's content isn't worth showing to anyone else like me."</strong> Multiply that across thousands of viewers and a creator's video can die in Batch 1 before they even check their phone.</p>
+    </div>
+    <button class="next-btn" onclick="goPage(4)" style="margin-top:24px">NEXT: WHY VIEWS GET STUCK <span>→</span></button>
+  </div></div>
+</div>
+
+<!-- PAGE 6 — POOL SYSTEM -->
+<div class="pg" id="pg-4">
+  <div class="topnav">
+    <div class="tn-left"><button class="back-btn" onclick="goPage('3b')">← Back</button><span class="tn-tag">Page 6 of 7</span></div>
+    <div class="tn-right"><div class="live-chip"><span class="live-dot"></span><span id="p4-timer">0s</span></div></div>
+  </div>
+  <div class="pg-scroll"><div class="inner">
+    <div class="eyebrow su">Now It Makes Sense</div>
+    <div class="pg-title su su1">WHY YOUR<br><span class="r">VIEWS STOP</span></div>
+    <p class="body-text su su2">TikTok doesn't show your video to everyone at once. Creators widely report a pattern where distribution expands in stages — often called the "Batch Effect." Early engagement signals determine whether a video reaches a larger audience.</p>
+    <div class="source-badge su su2">📄 TikTok's public creator resources acknowledge staged distribution · specific pool sizes and thresholds below are widely-reported creator observations, not official figures</div>
+    <div class="fact-box su su2">
+      <div class="fact-box-head">🔄 Widely Reported Pattern: Follower-First Testing</div>
+      <div class="fact-box-body">Many creators report that since late 2025, their own followers appear to see new content before it's distributed to strangers. TikTok has publicly stated that content relevance to your existing audience matters.</div>
+    </div>
+    <div class="pool-list su su2" id="pool-list"></div>
+    <div class="step" style="margin-top:16px">
+      <div class="step-label">The Batch Window</div>
+      <div class="step-title">Weak early signals = distribution narrows or stops</div>
+      <div class="step-body">TikTok has publicly emphasized that completion rate, shares, and saves are key signals for broader distribution. The specific threshold percentages circulating online are community estimates — TikTok has not published exact cutoff numbers.</div>
+    </div>
+    <button class="next-btn" onclick="goPage('humans')">NEXT: THE REAL CHALLENGE <span>→</span></button>
+  </div></div>
+</div>
+
+<!-- PAGE 7 — HUMANS -->
+<div class="pg" id="pg-humans">
+  <div class="topnav">
+    <div class="tn-left"><button class="back-btn" onclick="goPage(4)">← Back</button><span class="tn-tag">Page 7 of 8</span></div>
+    <div class="tn-right"><div class="live-chip"><span class="live-dot"></span><span id="phumans-timer">0s</span></div></div>
+  </div>
+  <div class="pg-scroll"><div class="inner">
+    <div class="eyebrow su">The Part Nobody Talks About</div>
+    <div class="pg-title su su1">THE ALGO<br>IS <span class="c">EASY</span>.<br><span class="r glitch-wrap" data-g="HUMANS">HUMANS</span><br><span class="r">ARE HARD.</span></div>
+    <p class="body-text su su2">We just proved the algorithm is multiplication. Weights times probabilities. Middle-school math.<br><br>So why does it feel unbeatable?</p>
+    <p class="body-text su su2">Because the algorithm isn't competing with your content. <strong>It's competing with every other claim on a human being's attention — and those claims are getting more extreme every year.</strong></p>
+
+    <div style="font-family:'DM Mono',monospace;font-size:.5rem;text-transform:uppercase;letter-spacing:.18em;color:var(--mid);margin:18px 0 10px">What your video is actually competing against</div>
+
+    <div class="obstacle-card red-ob su su2">
+      <div class="ob-emoji">🌍</div>
+      <div class="ob-content">
+        <div class="ob-title">Global events hijacking the emotional system</div>
+        <div class="ob-desc">When a war breaks out, a celebrity dies, a political crisis explodes — human attention physically can't stay with normal content. The brain's threat-detection system overrides everything else. TikTok can't serve someone a recipe video during a mass-casualty event and expect normal engagement. Your perfectly-optimized video drops to 200 views not because the algorithm penalized you — but because millions of humans were physiologically locked onto something more urgent.</div>
+        <div class="ob-reality">Research on "collective attention shocks" shows that major news events compress engagement windows globally within minutes of breaking — regardless of platform.</div>
+      </div>
+    </div>
+
+    <div class="obstacle-card gold-ob su su2">
+      <div class="ob-emoji">🧠</div>
+      <div class="ob-content">
+        <div class="ob-title">The algorithm is optimizing against your own brain</div>
+        <div class="ob-desc">Every platform — TikTok, Instagram, YouTube, X — is running the same playbook: find the emotional triggers that spike dopamine and engineer content delivery around them. Outrage keeps people longer than calm. Fear activates more than joy. Uncertainty is more engaging than resolution. The algorithm didn't invent these exploits — it discovered them by watching billions of humans and learning what made them freeze. <strong>You are not just making content. You are entering a machine that has spent years reverse-engineering human psychology at scale.</strong></div>
+        <div class="ob-reality">Internal documents from Meta cited the platform knew its systems were preferentially amplifying emotionally extreme content because it drove higher engagement metrics.</div>
+      </div>
+    </div>
+
+    <div class="obstacle-card cyan-ob su su3">
+      <div class="ob-emoji">📲</div>
+      <div class="ob-content">
+        <div class="ob-title">You're not competing with other creators — you're competing with everything</div>
+        <div class="ob-desc">Every time someone opens TikTok, they're also one notification away from Instagram, iMessage, YouTube, Snapchat, and the news. The average person switches apps 130+ times a day. Attention is fractured before they even hit your video. TikTok's 3-second hook rule exists because that's genuinely how long it takes for a competing notification to pull someone out of the feed. Your content is one tile in an infinite mosaic of things fighting for the same 3 seconds of eyeball time.</div>
+        <div class="ob-reality">The human brain's average focused attention window has measurably compressed over the past decade — not because people are lazier, but because the demand on attention has increased while the supply stayed the same.</div>
+      </div>
+    </div>
+
+    <div class="obstacle-card purple-ob su su3">
+      <div class="ob-emoji">😤</div>
+      <div class="ob-content">
+        <div class="ob-title">Emotional state at open determines everything — and you can't control it</div>
+        <div class="ob-desc">The same video can perform completely differently based on what mood millions of viewers are in when they hit it. Posted during a cultural moment of collective grief? Humor falls flat. Posted during a stressful news cycle? Educational content can't hold. Posted right after a major cultural event? Everything gets overshadowed. TikTok's algorithm is optimizing for engagement — but engagement is a human response, and humans aren't consistent emotional machines. Their state when they open the app is beyond any formula's prediction or any creator's control.</div>
+        <div class="ob-reality">This is why timing matters — but not in the "post at 6pm Tuesday" way. The real timing advantage is reading collective emotional weather and matching your tone to it.</div>
+      </div>
+    </div>
+
+    <div style="font-family:'DM Mono',monospace;font-size:.5rem;text-transform:uppercase;letter-spacing:.18em;color:var(--mid);margin:24px 0 10px">How platforms trigger humans to keep scrolling</div>
+    <div class="algo-vs-human su su3">
+      <div class="avh-header">
+        <div class="avh-side-label" style="color:var(--cyan)">The trigger</div>
+        <div class="avh-vs">→</div>
+        <div class="avh-side-label" style="color:var(--red);text-align:right">Why it works neurologically</div>
+      </div>
+      <div class="avh-row">
+        <div class="avh-cell machine-cell">Infinite scroll / no endpoint</div>
+        <div class="avh-mid"></div>
+        <div class="avh-cell human-cell" style="text-align:right">Eliminates the natural stopping cue the brain needs to disengage</div>
+      </div>
+      <div class="avh-row">
+        <div class="avh-cell machine-cell">Variable reward (sometimes great, usually mid)</div>
+        <div class="avh-mid"></div>
+        <div class="avh-cell human-cell" style="text-align:right">The same mechanism as slot machines — unpredictable reward schedules are the most addictive pattern known</div>
+      </div>
+      <div class="avh-row">
+        <div class="avh-cell machine-cell">Outrage / controversy content boosted</div>
+        <div class="avh-mid"></div>
+        <div class="avh-cell human-cell" style="text-align:right">Threat-detection is evolutionarily older and stronger than pleasure circuits — anger keeps people scrolling to "resolve" the feeling</div>
+      </div>
+      <div class="avh-row">
+        <div class="avh-cell machine-cell">Social validation metrics (likes, views, comments)</div>
+        <div class="avh-mid"></div>
+        <div class="avh-cell human-cell" style="text-align:right">Social acceptance = survival signal in evolutionary terms. The brain treats a like notification the same as tribal approval</div>
+      </div>
+      <div class="avh-row">
+        <div class="avh-cell machine-cell">FOMO content ("everyone saw this")</div>
+        <div class="avh-mid"></div>
+        <div class="avh-cell human-cell" style="text-align:right">Social exclusion activates the same pain centers as physical pain — viral content exploits this directly</div>
+      </div>
+      <div class="avh-row">
+        <div class="avh-cell machine-cell">Autoplay / no friction to next video</div>
+        <div class="avh-mid"></div>
+        <div class="avh-cell human-cell" style="text-align:right">Removes the decision point where the brain would naturally exit — passive inertia keeps the session going indefinitely</div>
+      </div>
+      <div style="padding:8px 12px;font-family:'DM Mono',monospace;font-size:.42rem;color:#6272a4">These are not accidents. They are documented design choices. Every feature above was tested, measured for engagement impact, and kept because the engagement numbers went up.</div>
+    </div>
+
+    <div style="font-family:'DM Mono',monospace;font-size:.5rem;text-transform:uppercase;letter-spacing:.18em;color:var(--mid);margin:24px 0 10px">The algorithm vs the actual human experience</div>
+    <div class="human-contrast su su3">
+      <div class="hc-side machine">
+        <div class="hc-label" style="color:var(--cyan)">The Algorithm</div>
+        <div class="hc-item"><div class="hc-item-dot" style="background:var(--cyan)"></div>Emotionally neutral</div>
+        <div class="hc-item"><div class="hc-item-dot" style="background:var(--cyan)"></div>Unaffected by news</div>
+        <div class="hc-item"><div class="hc-item-dot" style="background:var(--cyan)"></div>No dopamine system to exploit</div>
+        <div class="hc-item"><div class="hc-item-dot" style="background:var(--cyan)"></div>Consistent rules 24/7</div>
+        <div class="hc-item"><div class="hc-item-dot" style="background:var(--cyan)"></div>Only reads signals, no feelings</div>
+        <div class="hc-item"><div class="hc-item-dot" style="background:var(--cyan)"></div>Optimizes a single objective</div>
+      </div>
+      <div class="hc-side human">
+        <div class="hc-label" style="color:var(--red)">The Human Viewer</div>
+        <div class="hc-item"><div class="hc-item-dot" style="background:var(--red)"></div>Emotional state changes hourly</div>
+        <div class="hc-item"><div class="hc-item-dot" style="background:var(--red)"></div>Breaking news redirects attention</div>
+        <div class="hc-item"><div class="hc-item-dot" style="background:var(--red)"></div>Dopamine being actively manipulated</div>
+        <div class="hc-item"><div class="hc-item-dot" style="background:var(--red)"></div>Competing for attention constantly</div>
+        <div class="hc-item"><div class="hc-item-dot" style="background:var(--red)"></div>Mood shapes every watch decision</div>
+        <div class="hc-item"><div class="hc-item-dot" style="background:var(--red)"></div>Distracted by 6 other apps simultaneously</div>
+      </div>
+    </div>
+    <div style="font-family:'DM Mono',monospace;font-size:.43rem;color:#6272a4;margin-bottom:24px;text-align:center">The algorithm is deterministic. The human viewing it is not.</div>
+
+    <div class="reframe-box su su4">
+      <span class="reframe-icon">🎯</span>
+      <div class="reframe-title">THE REAL GAME</div>
+      <p class="reframe-body">
+        The algorithm gives every creator the same rules. The math is solvable. The formula is public.<br><br>
+        The thing that can't be solved with math is <strong>human attention</strong> — which is fractured, emotionally volatile, constantly redirected by world events, and being actively competed for by some of the most sophisticated manipulation systems ever built.<br><br>
+        The creators who break through aren't the ones who beat the algorithm. <strong>They're the ones who understand how to reach humans who are being pulled in a hundred directions at once — and make something worth stopping for anyway.</strong>
+      </p>
+    </div>
+
+    <div style="margin-top:4px">
+      <div style="font-family:'DM Mono',monospace;font-size:.5rem;text-transform:uppercase;letter-spacing:.18em;color:var(--mid);margin-bottom:10px">How to work with human psychology, not against it</div>
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <div style="background:var(--s1);border:1px solid var(--border);border-left:3px solid var(--green);padding:12px 15px;border-radius:0 8px 8px 0">
+          <div style="font-size:.78rem;font-weight:700;color:var(--white);margin-bottom:3px">✓ Match your emotional tone to the cultural moment</div>
+          <div style="font-size:.71rem;color:var(--muted);line-height:1.6">During high-anxiety news cycles, calm and grounding content outperforms hype. During collective joy moments, humor and celebration spike. The algorithm can't tell you this — but reading where the room's emotional energy is at is the highest-leverage skill a creator can have.</div>
+        </div>
+        <div style="background:var(--s1);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:12px 15px;border-radius:0 8px 8px 0">
+          <div style="font-size:.78rem;font-weight:700;color:var(--white);margin-bottom:3px">✓ Interrupt the scroll with something genuinely human</div>
+          <div style="font-size:.71rem;color:var(--muted);line-height:1.6">The platforms are optimizing for emotional triggers. The way to stand out is to trigger the one thing the machine can't manufacture: authentic human connection. Real reactions, genuine moments, things that feel unscripted — because the human brain is extraordinarily good at detecting when something is real vs. performed.</div>
+        </div>
+        <div style="background:var(--s1);border:1px solid var(--border);border-left:3px solid var(--gold);padding:12px 15px;border-radius:0 8px 8px 0">
+          <div style="font-size:.78rem;font-weight:700;color:var(--white);margin-bottom:3px">✓ Understand that some bad weeks are just bad news cycles</div>
+          <div style="font-size:.71rem;color:var(--muted);line-height:1.6">If your views tank during a major global event, it's not your content, your account, or a shadowban. It's that human attention migrated somewhere else. The best creators know the difference between a platform signal problem and a collective-attention problem — and they don't waste energy chasing the algorithm when the issue is the world.</div>
+        </div>
+        <div style="background:var(--s1);border:1px solid var(--border);border-left:3px solid var(--purple);padding:12px 15px;border-radius:0 8px 8px 0">
+          <div style="font-size:.78rem;font-weight:700;color:var(--white);margin-bottom:3px">✓ Be aware you're also a human being inside this system</div>
+          <div style="font-size:.71rem;color:var(--muted);line-height:1.6">The same dopamine loops, variable rewards, and outrage amplification being used on your audience are being used on you. Your creative decisions are being made inside a machine designed to manipulate your emotional state. Separating content creation time from consumption time isn't just productivity advice — it's recognizing that you need to be outside the influence field to make clear decisions inside it.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:rgba(255,45,85,.05);border:1px solid rgba(255,45,85,.2);border-radius:10px;padding:16px;margin:20px 0;text-align:center">
+      <div style="font-family:'DM Mono',monospace;font-size:.46rem;text-transform:uppercase;letter-spacing:.14em;color:var(--red);margin-bottom:6px">Bottom line</div>
+      <div style="font-size:.82rem;color:var(--light);line-height:1.75">The formula is solved. The math is public.<br><br>The unsolvable part is the human being on the other side of the screen — fractured, distracted, emotionally hijacked by the world — and figuring out how to make something worth stopping for anyway.</div>
+    </div>
+
+    <div style="background:var(--s1);border:1px solid rgba(255,214,10,.15);padding:16px;border-radius:8px;margin-top:8px;text-align:center">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--gold)">CERNA SQUAD</div>
+      <div style="font-size:.74rem;color:var(--mid);margin-top:4px">The algorithm is just math. Now you know the real formula.</div>
+      <div style="font-family:'DM Mono',monospace;font-size:.45rem;color:var(--dim);margin-top:6px">Sources: NYT reporting on Algo 101 (Dec 2021) · TikTok public How-It-Works page · Creator community observations noted where used</div>
+    </div>
+
+    <button class="next-btn" onclick="goPage('outro')" style="margin-top:16px">ONE LAST THING <span>→</span></button>
+  </div></div>
+</div>
+
+<!-- PAGE 8 — OUTRO -->
+<div class="pg" id="pg-outro">
+  <div class="topnav">
+    <div class="tn-left"><button class="back-btn" onclick="goPage('humans')">← Back</button><span class="tn-tag">Page 8 of 8</span></div>
+    <div class="tn-right"><div class="live-chip"><span class="live-dot"></span><span>Cerna Squad</span></div></div>
+  </div>
+  <div class="pg-scroll"><div class="inner" style="display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:40px;padding-bottom:80px">
+
+    <div style="font-family:'DM Mono',monospace;font-size:.5rem;text-transform:uppercase;letter-spacing:.3em;color:var(--cyan);opacity:.65;margin-bottom:16px;animation:slideUp .5s ease .1s both">That's a wrap</div>
+
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:clamp(2.8rem,14vw,5.5rem);letter-spacing:.02em;line-height:.88;margin-bottom:28px;animation:titleReveal .9s cubic-bezier(.16,1,.3,1) .2s both">
+      HOPE THIS<br><span style="color:var(--cyan);text-shadow:0 0 30px rgba(0,229,255,.6)">OPENED</span><br>YOUR EYES<br><span style="color:var(--red);text-shadow:0 0 30px rgba(255,45,85,.6)">A BIT</span>
+    </div>
+
+    <p style="font-size:.88rem;color:var(--light);line-height:1.9;max-width:360px;margin-bottom:32px;animation:slideUp .6s ease .4s both">
+      The algorithm is just math.<br>
+      The feed is just a matrix.<br>
+      The signals are just numbers.<br><br>
+      <strong style="color:var(--white)">You just learned what most people scrolling right now have zero idea about.</strong>
+    </p>
+
+    <!-- SYSTEM BUILDER CARD -->
+    <div style="width:100%;max-width:400px;background:var(--s1);border:1px solid var(--border2);border-radius:14px;padding:22px;margin-bottom:16px;position:relative;overflow:hidden;animation:slideUp .6s ease .55s both">
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--red),var(--cyan),var(--gold))"></div>
+      <div style="font-family:'DM Mono',monospace;font-size:.44rem;text-transform:uppercase;letter-spacing:.2em;color:var(--mid);margin-bottom:10px">About Me</div>
+      <div style="font-size:.84rem;color:var(--light);line-height:1.85;margin-bottom:14px;text-align:left">
+        I don't just talk about how systems work — <strong style="color:var(--white)">I build them.</strong> What you just experienced? That's a system. The fake TikTok feed, the live scoring, the data cards — all engineered to make a concept <em style="color:var(--cyan)">feel real</em> instead of just explained. That's what I do.
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center">
+        <span style="background:rgba(255,45,85,.08);border:1px solid rgba(255,45,85,.2);color:var(--red);font-family:'DM Mono',monospace;font-size:.44rem;text-transform:uppercase;letter-spacing:.1em;padding:4px 10px;border-radius:20px">Systems Builder</span>
+        <span style="background:rgba(0,229,255,.06);border:1px solid rgba(0,229,255,.18);color:var(--cyan);font-family:'DM Mono',monospace;font-size:.44rem;text-transform:uppercase;letter-spacing:.1em;padding:4px 10px;border-radius:20px">Live Educator</span>
+        <span style="background:rgba(255,214,10,.06);border:1px solid rgba(255,214,10,.2);color:var(--gold);font-family:'DM Mono',monospace;font-size:.44rem;text-transform:uppercase;letter-spacing:.1em;padding:4px 10px;border-radius:20px">Cerna Squad</span>
+      </div>
+    </div>
+
+    <!-- GABES LIVE CTA -->
+    <div style="width:100%;max-width:400px;background:linear-gradient(135deg,rgba(255,45,85,.07),rgba(0,229,255,.04));border:1px solid rgba(255,45,85,.25);border-radius:14px;padding:22px;margin-bottom:16px;position:relative;overflow:hidden;animation:slideUp .6s ease .7s both">
+      <div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--red),transparent);opacity:.7"></div>
+      <div style="font-size:2rem;margin-bottom:10px">📡</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1.7rem;letter-spacing:.06em;color:var(--white);margin-bottom:8px">See You on Gabe's Live</div>
+      <div style="font-size:.78rem;color:var(--muted);line-height:1.75;margin-bottom:14px">
+        Woah woah woah woah ... ain't no way 
+      </div>
+      <div style="font-family:'DM Mono',monospace;font-size:.54rem;text-transform:uppercase;letter-spacing:.14em;color:var(--cyan);text-shadow:var(--cyan-glow)">@gabeperezz · TikTok Live</div>
+    </div>
+
+    <!-- SIGN OFF -->
+    <div style="width:100%;max-width:400px;animation:slideUp .6s ease .85s both">
+      <div style="background:rgba(0,0,0,.5);border:1px solid var(--border2);border-radius:14px;padding:28px;text-align:center;position:relative;overflow:hidden">
+        <div style="position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 100%,rgba(255,45,85,.07),transparent);pointer-events:none"></div>
+        <div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--red),var(--cyan),transparent);opacity:.4"></div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:3rem;letter-spacing:.04em;line-height:1;margin-bottom:6px">
+          <span style="color:var(--red);text-shadow:var(--red-glow)">CERNA</span> <span style="color:var(--white)">SQUAD</span>
+        </div>
+        <div style="font-family:'DM Mono',monospace;font-size:.6rem;text-transform:uppercase;letter-spacing:.26em;color:var(--mid);margin-bottom:16px">OUT. 🎤</div>
+        <div style="width:80px;height:1px;background:linear-gradient(90deg,transparent,var(--red),transparent);margin:0 auto 16px"></div>
+        <div style="font-family:'DM Mono',monospace;font-size:.43rem;color:#6272a4;line-height:1.8">Sources: NYT reporting on Algo 101 (Dec 2021)<br>TikTok public How-It-Works page · Creator community observations</div>
+      </div>
+    </div>
+
+  </div></div>
+</div>
+
+<script>
+const S = {
+  currentPage:'0', pageEnterTimes:{}, pageTotalTimes:{},
+  sessionStart:Date.now(), landingSecs:0,
+  ttVideosWatched:0, ttLikes:0, ttSwipes:0, ttUserScore:0, ttSessionData:[]
+};
+
+const PAGE_ORDER = ['0','1','algo','tiktok','3','3b','4','humans','outro'];
+
+function goPage(id) {
+  id = String(id);
+  const from = document.getElementById('pg-' + S.currentPage);
+  const to   = document.getElementById('pg-' + id);
+  if (!to) return;
+  if (S.pageEnterTimes[S.currentPage]) {
+    S.pageTotalTimes[S.currentPage] = (S.pageTotalTimes[S.currentPage]||0) + (Date.now() - S.pageEnterTimes[S.currentPage]);
+  }
+  from.classList.remove('active');
+  to.classList.add('active');
+  const scr = to.querySelector('.pg-scroll');
+  if (scr) scr.scrollTop = 0;
+  S.currentPage = id;
+  S.pageEnterTimes[id] = Date.now();
+  updateGlobalBar();
+  onPageEnter(id);
+}
+
+function updateGlobalBar() {
+  const idx = PAGE_ORDER.indexOf(S.currentPage);
+  document.getElementById('gbar').style.width = Math.round((idx / (PAGE_ORDER.length-1)) * 100) + '%';
+}
+
+setInterval(() => {
+  const id = S.currentPage;
+  if (!S.pageEnterTimes[id]) return;
+  const elapsed = Math.floor((Date.now() - S.pageEnterTimes[id]) / 1000);
+  const el = document.getElementById('p' + id + '-timer');
+  if (el) el.textContent = fmtTime(elapsed);
+}, 1000);
+
+function onPageEnter(id) {
+  if (id === '0') startLanding();
+  if (id === '4') buildPoolList();
+  if (id === 'tiktok') initTikTok();
+  if (id === '3') updatePage3();
+  if (id === '3b') updatePage3b();
+}
+
+function startLanding() {
+  S.pageEnterTimes['0'] = Date.now();
+  const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+  setEl('d-device', isMobile ? 'mobile' : 'desktop');
+  let secs = 0;
+  const t = setInterval(() => {
+    if (S.currentPage !== '0') { clearInterval(t); return; }
+    secs++;
+    S.landingSecs = secs;
+    setEl('d-time', fmtTime(secs));
+    setEl('d-eng', Math.min(1, secs * 0.015).toFixed(3));
+  }, 1000);
+}
+
+function buildPoolList() {
+  const pools = [
+    {n:'Batch 1 — Follower Seed', d:'Your followers + interest-matched non-followers (2026: followers tested first)', r:'~300 users · est. threshold: ~70% completion'},
+    {n:'Batch 2 — Interest Match', d:'Non-followers matched to your content category via interest graph', r:'~1K–5K users · higher engagement bar'},
+    {n:'Batch 3 — Category Feed', d:'Niche community pool: BookTok, SportsOnTikTok, STEMTok, etc.', r:'~50K people · each wave tests the same completion threshold'},
+    {n:'Batch 4 — Regional FYP', d:'Country-level For You Page (TikTok confirms location is a real signal)', r:'~500K people · signals must hold across wider demographics'},
+    {n:'Batch 5+ — Global FYP 🔥', d:'Algorithm confirmed this is possible for any account regardless of follower count', r:'Millions · what TikTok calls "democratized distribution"'},
+  ];
+  const list = document.getElementById('pool-list');
+  if (!list) return;
+  list.innerHTML = '';
+  pools.forEach((p, i) => {
+    const isLast = i === pools.length - 1;
+    const div = document.createElement('div');
+    div.className = 'pool-item';
+    div.innerHTML = `
+      <div class="pool-spine">
+        <div class="pool-node ${i<=1?'active':''}"></div>
+        ${!isLast?'<div class="pool-vline"></div>':''}
+      </div>
+      <div class="pool-box ${i<=1?'active':''}">
+        <div class="pool-name">${p.n}</div>
+        <div class="pool-desc">${p.d}</div>
+        <div class="pool-reach">${p.r}</div>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+
+function updatePage3() {
+  const vids = TT_VIDEOS;
+  const data = S.ttSessionData;
+  const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+  const hour = new Date().getHours();
+  const timeLabel = hour < 6 ? 'late night' : hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : hour < 21 ? 'evening' : 'night';
+  const isLateNight = hour >= 22 || hour < 6;
+  const totalSecs  = data.reduce((a,b)=>a+(b?.watchSecs||0),0);
+  const totalLikes = S.ttLikes;
+  const totalShares= data.reduce((a,b)=>a+(b?.shares||0),0);
+  const totalSaves = data.reduce((a,b)=>a+(b?.saves||0),0);
+  const profileVisits = data.reduce((a,b)=>a+(b?.profileVisit||0),0);
+  const swipeCount = S.ttSwipes;
+  const avgComp    = data.reduce((a,b)=>a+Math.min(1,(b?.watchSecs||0)/(b?.duration||1)),0) / Math.max(1,data.length);
+  const finalScore = S.ttUserScore;
+  let longestIdx=0, longestSecs=0;
+  data.forEach((d,i)=>{ if((d?.watchSecs||0)>longestSecs){longestSecs=d.watchSecs;longestIdx=i;} });
+  let fastestSkipIdx=-1, fastestSkipSecs=9999;
+  data.forEach((d,i)=>{ if((d?.watchSecs||0)<fastestSkipSecs&&(d?.watchSecs||0)>0){fastestSkipSecs=d.watchSecs;fastestSkipIdx=i;} });
+  const engagementType = totalLikes>0&&totalSaves>0?'high-intent engager':totalLikes>0?'passive liker':totalSaves>0?'silent saver':'observer';
+  const scrollPace = swipeCount>=4?'fast scroller':swipeCount>=2?'moderate':'slow & deliberate';
+  const stats = [
+    {v:totalSecs+'s', l:'time watched', c:'var(--cyan)'},
+    {v:swipeCount,    l:'swipes',       c:'var(--red)'},
+    {v:Math.round(avgComp*100)+'%', l:'avg completion', c:avgComp>=0.7?'var(--green)':avgComp>=0.4?'var(--gold)':'var(--red)'},
+  ];
+  document.getElementById('stat-strip').innerHTML = stats.map(s=>`
+    <div style="background:var(--s1);border:1px solid var(--border);padding:13px 10px;border-radius:8px;text-align:center">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1.7rem;color:${s.c};line-height:1">${s.v}</div>
+      <div style="font-family:'DM Mono',monospace;font-size:.44rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-top:4px">${s.l}</div>
+    </div>`).join('');
+  document.getElementById('session-result-card').style.display = 'block';
+  document.getElementById('session-final-score').textContent = finalScore.toFixed(3);
+  setTimeout(()=>{ document.getElementById('session-score-bar').style.width=(finalScore*100)+'%'; }, 150);
+  const verdict = finalScore>=0.70?'🟢 Above the 2025 viral threshold. High Eplaytime signal. You were an engaged viewer.'
+    :finalScore>=0.50?'🟡 Moderate. Some watch time but low intent signals (no saves/shares). Mid-range viewer.'
+    :'🔴 Low engagement. Fast swipes, no actions. The algo classified you as a disengaged viewer this session.';
+  setEl('session-verdict', verdict);
+  const inferred = [];
+  inferred.push({icon:'📱', label:'Device', raw:isMobile?'mobile':'desktop',
+    detail:isMobile?'Mobile session. TikTok confirms device type as a ranking signal.':'Desktop session. Mobile remains the dominant engagement surface.'});
+  inferred.push({icon:'🕐', label:'Session time', raw:timeLabel,
+    detail:isLateNight?'Late-night session. TikTok tracks time-of-day — completion rates spike late at night.':timeLabel.charAt(0).toUpperCase()+timeLabel.slice(1)+' session. Time-of-day is a documented signal.'});
+  inferred.push({icon:'👆', label:'Scroll pattern', raw:scrollPace,
+    detail:swipeCount>=4?`${swipeCount} swipes. Fast-scroll pattern. Rapid exits signal low content-type match.`:swipeCount<=1?'Minimal swiping. Watch time is the #1 signal. You staying is the strongest vote you can cast.':`${swipeCount} swipes — moderate pace.`});
+  if (longestSecs>0) inferred.push({icon:'👁️', label:'Lingered on', raw:vids[longestIdx]?.user||'—',
+    detail:`Longest watch: ${vids[longestIdx]?.user} (${longestSecs}s). This content category now has higher weight in your feed predictions.`});
+  if (fastestSkipIdx>=0&&fastestSkipSecs<5) inferred.push({icon:'⚡', label:'Fastest bail', raw:fastestSkipSecs+'s',
+    detail:`Left ${vids[fastestSkipIdx]?.user} in ${fastestSkipSecs}s — below the 3-second threshold. Confirmed negative signal.`});
+  inferred.push({icon:'🧠', label:'Engagement class', raw:engagementType,
+    detail:engagementType==='high-intent engager'?'Liked AND saved. You sent the two strongest positive signals available.':engagementType==='silent saver'?'Saved without liking. Saves outrank likes — stronger signal than a liker who didn\'t save.':engagementType==='passive liker'?'Liked, no save. Likes are the weakest positive signal.':'No likes, no saves, no shares. Watch-time data only.'});
+  if (profileVisits>0) inferred.push({icon:'👤', label:'Profile visits', raw:profileVisits+' creator'+(profileVisits>1?'s':''),
+    detail:'Profile visit = strong intent signal.'});
+  inferred.push({icon:'🗂️', label:'Interest vector', raw:'updated this session',
+    detail:'Every action nudged your personal interest embedding. Your For You Page is already different from when you started.'});
+  document.getElementById('inferred-data').innerHTML = `
+    <div style="background:rgba(255,45,85,.06);border:1px solid rgba(255,45,85,.2);border-radius:10px;padding:13px 15px;margin-bottom:10px">
+      <div style="font-family:'DM Mono',monospace;font-size:.49rem;text-transform:uppercase;letter-spacing:.14em;color:var(--red);margin-bottom:4px;display:flex;align-items:center;gap:6px"><span class="live-dot" style="background:var(--red)"></span>Profile TikTok built on you — without you saying a word</div>
+    </div>
+    ${inferred.map((item,i)=>`
+    <div style="background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:12px 13px;margin-bottom:6px;animation:slideUp .35s ease ${i*.05}s both">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+        <div style="display:flex;align-items:center;gap:7px">
+          <span style="font-size:1rem">${item.icon}</span>
+          <span style="font-family:'DM Mono',monospace;font-size:.48rem;text-transform:uppercase;letter-spacing:.1em;color:var(--mid)">${item.label}</span>
+        </div>
+        <span style="font-family:'DM Mono',monospace;font-size:.55rem;color:var(--cyan);text-align:right;max-width:45%">${item.raw}</span>
+      </div>
+      <div style="font-size:.72rem;color:var(--light);line-height:1.6;padding-left:25px">${item.detail}</div>
+    </div>`).join('')}`;
+  document.getElementById('hidden-signals').innerHTML = `
+    <div style="font-family:'DM Mono',monospace;font-size:.48rem;text-transform:uppercase;letter-spacing:.16em;color:var(--mid);margin:16px 0 10px">Signals you didn't know you were sending</div>
+    ${[
+      {icon:'⚡',t:'Swipe velocity',src:'TikTok patent filings',b:'How fast you swiped matters as much as that you swiped. A pause before exiting = hesitation = mild interest. Instant swipe = strong rejection.'},
+      {icon:'🔁',t:'Replays = 2× Eplaytime',src:'Algo 101 leaked formula',b:'The Eplaytime variable accumulates across replays. One 15s video rewatched twice = same signal as watching 30s straight. This is why loopable content wins.'},
+      {icon:'👀',t:'Post-video pause',src:'TikTok creator docs',b:'If you waited 2+ seconds after a video ended before swiping — that\'s a near-rewatch signal. Even doing nothing is data.'},
+      {icon:'🌐',t:'Language + country',src:'TikTok How It Works (official)',b:'TikTok officially confirms language and country setting affect ranking. Virality almost always starts local.'},
+    ].map(s=>`
+    <div style="background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:11px 13px;margin-bottom:6px;display:flex;gap:10px">
+      <span style="font-size:1rem;flex-shrink:0;margin-top:1px">${s.icon}</span>
+      <div><div style="font-size:.76rem;font-weight:700;color:var(--white);margin-bottom:2px">${s.t} <span style="font-family:'DM Mono',monospace;font-size:.42rem;color:var(--cyan);font-weight:400">· ${s.src}</span></div>
+      <div style="font-size:.7rem;color:var(--muted);line-height:1.6">${s.b}</div></div>
+    </div>`).join('')}`;
+}
+
+function updatePage3b() {
+  const vids = TT_VIDEOS;
+  const data = S.ttSessionData;
+  const dim = s => `<span style="color:#6272a4;font-style:italic">${s}</span>`;
+  const num = s => `<span style="color:var(--gold)">${s}</span>`;
+  const kw  = s => `<span style="color:#ff79c6">${s}</span>`;
+  const grn = s => `<span style="color:var(--green)">"${s}"</span>`;
+  let creatorHTML = '';
+  let worstCreator = {score:1, user:'', idx:0};
+  let bestCreator  = {score:0, user:'', idx:0};
+  vids.forEach((v, i) => {
+    const d = data[i] || {watchSecs:0, likes:0, shares:0, saves:0, profileVisit:0, duration:v.duration};
+    const comp    = Math.min(1, d.watchSecs / d.duration);
+    const eplaytime = Math.min(1, comp * 1.2);
+    const creatorScore = Math.min(1,
+      eplaytime * 0.50 +
+      Math.min(1, d.likes   * 5) * 0.10 +
+      Math.min(1, d.shares  * 8) * 0.20 +
+      Math.min(1, d.saves   * 8) * 0.20
+    );
+    if (creatorScore < worstCreator.score) worstCreator = {score:creatorScore, user:v.user, idx:i};
+    if (creatorScore > bestCreator.score)  bestCreator  = {score:creatorScore, user:v.user, idx:i};
+    const compPct = Math.round(comp * 100);
+    const reached = d.watchSecs > 0;
+    let batchStatus, batchColor, batchIcon;
+    if (!reached) { batchStatus='Not reached — no data sent'; batchColor='var(--dim)'; batchIcon='⚫'; }
+    else if (creatorScore >= 0.70) { batchStatus='Passed batch threshold → pushed to next pool'; batchColor='var(--green)'; batchIcon='🟢'; }
+    else if (creatorScore >= 0.50) { batchStatus='Below 70% viral bar → distribution likely stalled'; batchColor='var(--gold)'; batchIcon='🟡'; }
+    else if (creatorScore >= 0.20) { batchStatus='Weak signal → batch stopped. Algo moves on.'; batchColor='var(--red)'; batchIcon='🔴'; }
+    else { batchStatus='Near-zero signal → immediate suppression in this batch'; batchColor='var(--red)'; batchIcon='🔴'; }
+    const missed = [];
+    if (comp < 0.70 && reached)  missed.push({what:'Hook failed', why:`You left at ${compPct}% — below the 70% threshold.`});
+    if (!d.likes && reached)     missed.push({what:'No like', why:'A like adds Plike signal.'});
+    if (!d.shares && reached)    missed.push({what:'No share', why:'Shares are the highest-weight active signal (2025 update).'});
+    if (!d.saves && reached)     missed.push({what:'No save', why:'Saves = intent to return. Zero saves = zero intent detected.'});
+    const scoreColor = creatorScore >= 0.70 ? 'var(--green)' : creatorScore >= 0.40 ? 'var(--gold)' : 'var(--red)';
+    creatorHTML += `
+    <div style="background:var(--s1);border:1px solid ${!reached?'var(--border)':creatorScore>=0.70?'rgba(0,255,136,.25)':creatorScore>=0.40?'rgba(255,214,10,.2)':'rgba(255,45,85,.25)'};border-radius:10px;padding:14px;margin-bottom:10px;animation:slideUp .4s ease ${i*.07}s both">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:34px;height:34px;border-radius:50%;background:${v.color};border:2px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-family:'Manrope',sans-serif;font-weight:700;font-size:.9rem;color:#fff;flex-shrink:0">${v.user[1].toUpperCase()}</div>
+          <div>
+            <div style="font-size:.8rem;font-weight:700;color:var(--white)">${v.user}</div>
+            <div style="font-family:'DM Mono',monospace;font-size:.44rem;color:var(--mid);text-transform:uppercase">video ${i+1} · ${v.duration}s</div>
+          </div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;line-height:1;color:${scoreColor}">${reached ? creatorScore.toFixed(3) : '—'}</div>
+          <div style="font-family:'DM Mono',monospace;font-size:.4rem;color:var(--dim);text-transform:uppercase">your contribution</div>
+        </div>
+      </div>
+      ${reached ? `
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <div style="font-family:'DM Mono',monospace;font-size:.46rem;color:var(--mid);flex-shrink:0;text-transform:uppercase">watched</div>
+        <div style="flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${compPct}%;background:${scoreColor};border-radius:3px"></div>
+        </div>
+        <div style="font-family:'DM Mono',monospace;font-size:.5rem;color:${scoreColor};flex-shrink:0">${compPct}% · ${d.watchSecs}s</div>
+      </div>` : `<div style="font-family:'DM Mono',monospace;font-size:.46rem;color:var(--dim);margin-bottom:8px">you didn't reach this video</div>`}
+      <div style="background:rgba(0,0,0,.3);border-radius:6px;padding:8px 10px;">
+        <div style="font-size:.72rem;color:${batchColor};font-weight:700">${batchIcon} ${batchStatus}</div>
+      </div>
+      ${missed.length ? `
+      <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px">
+        ${missed.map(m=>`
+        <div style="display:flex;gap:8px;margin-bottom:4px;align-items:flex-start">
+          <div style="width:3px;height:3px;border-radius:50%;background:var(--red);flex-shrink:0;margin-top:6px"></div>
+          <div style="font-size:.7rem;line-height:1.55"><span style="color:var(--white);font-weight:700">${m.what}:</span> <span style="color:var(--muted)">${m.why}</span></div>
+        </div>`).join('')}
+      </div>` : reached&&creatorScore>=0.70 ? `
+      <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px;font-size:.7rem;color:var(--green)">✓ Strong signals. Their video gets pushed further because of you.</div>` : ''}
+    </div>`;
+  });
+  document.getElementById('creator-breakdown').innerHTML = creatorHTML;
+  const worstData = data[worstCreator.idx] || {watchSecs:0, likes:0, shares:0, saves:0, duration:vids[worstCreator.idx]?.duration||20};
+  const wComp = Math.min(1, worstData.watchSecs / (worstData.duration||20));
+  document.getElementById('creator-score-code').innerHTML =
+`${dim('# Creator: ' + worstCreator.user + ' — your contribution to their score')}\n\n` +
+`viewer_signals = {\n` +
+`  ${grn('Eplaytime')}: ${num(Math.min(1,wComp*1.2).toFixed(3))},\n` +
+`  ${grn('Plike')}:     ${num((worstData.likes>0?1:0).toFixed(1))},\n` +
+`  ${grn('Pshare')}:    ${num((worstData.shares>0?1:0).toFixed(1))},\n` +
+`  ${grn('Psave')}:     ${num((worstData.saves>0?1:0).toFixed(1))},\n` +
+`}\n\n` +
+`contribution  = Eplaytime × 0.50\n` +
+`contribution += Plike      × 0.10\n` +
+`contribution += Pshare     × 0.20\n` +
+`contribution += Psave      × 0.20\n\n` +
+`${kw('return')} <span style="color:var(--red);font-weight:bold">${worstCreator.score.toFixed(3)}</span>`;
+  const avgCreatorScore = vids.reduce((acc,v,i)=>{
+    const d = data[i]||{watchSecs:0,likes:0,shares:0,saves:0,duration:v.duration};
+    const comp = Math.min(1,d.watchSecs/d.duration);
+    const ep = Math.min(1,comp*1.2);
+    return acc + Math.min(1, ep*0.5 + Math.min(1,d.likes*5)*0.1 + Math.min(1,d.shares*8)*0.2 + Math.min(1,d.saves*8)*0.2);
+  },0) / vids.length;
+  const helpedCount = vids.filter((_,i)=>{
+    const d = data[i]||{watchSecs:0,likes:0,shares:0,saves:0,duration:vids[i].duration};
+    const comp=Math.min(1,d.watchSecs/d.duration);
+    const ep=Math.min(1,comp*1.2);
+    return Math.min(1,ep*0.5+Math.min(1,d.likes*5)*0.1+Math.min(1,d.shares*8)*0.2+Math.min(1,d.saves*8)*0.2)>=0.70;
+  }).length;
+  const hurtCount = vids.filter((_,i)=>{
+    const d=data[i]||{watchSecs:0,likes:0,shares:0,saves:0,duration:vids[i].duration};
+    const comp=Math.min(1,d.watchSecs/d.duration);
+    const ep=Math.min(1,comp*1.2);
+    const score=Math.min(1,ep*0.5+Math.min(1,d.likes*5)*0.1+Math.min(1,d.shares*8)*0.2+Math.min(1,d.saves*8)*0.2);
+    return d.watchSecs>0&&score<0.50;
+  }).length;
+  document.getElementById('creator-verdict-card').style.display = 'block';
+  document.getElementById('creator-verdict-card').innerHTML = `
+    <div style="background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:16px">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
+        <div style="text-align:center"><div style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--green);line-height:1">${helpedCount}</div><div style="font-family:'DM Mono',monospace;font-size:.42rem;text-transform:uppercase;color:var(--dim);margin-top:3px">creators helped</div></div>
+        <div style="text-align:center"><div style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--red);line-height:1">${hurtCount}</div><div style="font-family:'DM Mono',monospace;font-size:.42rem;text-transform:uppercase;color:var(--dim);margin-top:3px">creators hurt</div></div>
+        <div style="text-align:center"><div style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--gold);line-height:1">${avgCreatorScore.toFixed(2)}</div><div style="font-family:'DM Mono',monospace;font-size:.42rem;text-transform:uppercase;color:var(--dim);margin-top:3px">avg contribution</div></div>
+      </div>
+    </div>`;
+}
+
+// ─── TIKTOK ───
+const TT_VIDEOS = [
+  {user:'@cernaSquad', verified:true, bg:'linear-gradient(135deg,#0d0d1a 0%,#1a1035 60%,#0f1f40 100%)', centerMain:'THE ALGO IS\nWATCHING YOU', centerSub:'every second logged • swipe or stay', caption:'No video is playing. But every second you stay, every tap, every swipe — is being scored. 📊', sound:'original sound - cernaSquad', likes:'8.4K', comments:'412', shares:'2.1K', saves:'890', duration:28, color:'#6c63ff'},
+  {user:'@gabeperezz', verified:true, bg:'linear-gradient(135deg,#0a1520 0%,#0d2535 50%,#0a2040 100%)', centerMain:'SAVES > SHARES\n> LIKES', centerSub:'2025 algo update: intent > vanity', caption:'POV: you just realized saves rank higher than likes in TikTok\'s 2025 algorithm update 😭', sound:'chill lofi beat', likes:'22.1K', comments:'1.8K', shares:'5.4K', saves:'3.2K', duration:15, color:'#00e5ff'},
+  {user:'@kayla.ttsfind', verified:false, bg:'linear-gradient(135deg,#0f0f14 0%,#1a0f35 100%)', centerMain:'SWIPE UP TO\nSKIP ME', centerSub:'that swipe speed is a signal too', caption:'building tiktok algo from scratch. based on the real leaked Algo 101 doc. day 1 🧵', sound:'focus mode beat', likes:'4.2K', comments:'892', shares:'1.1K', saves:'2.8K', duration:45, color:'#ffd60a'},
+  {user:'@greenlineoutdoors1', verified:false, bg:'linear-gradient(135deg,#0a0505 0%,#180808 50%,#200a0a 100%)', centerMain:'70% COMPLETION\nOR IT STOPS', centerSub:'2025 raised bar from 50% → 70%', caption:'stuck at 300 views? it\'s not shadowban. it\'s the 2025 batch threshold math 🧮', sound:'No copyright beat', likes:'31.2K', comments:'4.1K', shares:'12.8K', saves:'6.7K', duration:22, color:'#ff2d55'},
+  {user:'@randomuser', verified:false, bg:'linear-gradient(135deg,#050f08 0%,#081a0d 100%)', centerMain:'260 VIDEOS =\nHABIT FORMED', centerSub:'real stat from leaked internal docs', caption:'TikTok\'s own research: 260 videos = addiction threshold. Real number from Kentucky AG lawsuit docs.', sound:'study music', likes:'9.1K', comments:'623', shares:'3.4K', saves:'4.1K', duration:18, color:'#00ff88'},
+];
+
+let ttCurrentIdx=0, ttWatchTimer=null, ttWatchSecs=0;
+let ttStartY=null, ttIsDragging=false, ttDragDelta=0, ttRevealed=false;
+
+function initTikTok() {
+  ttCurrentIdx=0; ttRevealed=false;
+  S.ttVideosWatched=0; S.ttLikes=0; S.ttSwipes=0; S.ttSessionData=[];
+  document.getElementById('tt-reveal').classList.remove('show');
+  const feed = document.getElementById('tt-feed');
+  feed.innerHTML = '';
+  TT_VIDEOS.forEach((v,i) => {
+    const div = document.createElement('div');
+    div.className='tt-video'; div.id='ttv-'+i;
+    div.style.transform='translateY('+(i*100)+'%)';
+    div.innerHTML = buildVideoHTML(v,i);
+    feed.appendChild(div);
+  });
+  startTTVideo(0);
+  bindTTSwipe();
+}
+
+function buildVideoHTML(v,i) {
+  const lines = v.centerMain.split('\n');
+  const centeredText = lines.map(l=>`<div>${l}</div>`).join('');
+  return `
+    <div class="tt-bg"><div class="tt-bg-inner" style="background:${v.bg}"></div></div>
+    <div class="tt-overlay"></div>
+    <div class="tt-center">
+      <div class="tt-center-main">${centeredText}</div>
+      <div class="tt-center-sub">${v.centerSub}</div>
+      <div class="tt-watching-badge"><span class="live-dot" style="background:var(--red);animation:blink 1s infinite"></span> algo scoring this session</div>
+    </div>
+    <div class="tt-info">
+      <div class="tt-username">${v.user} ${v.verified?'<span style="color:#20d5ec;font-size:.68rem">✓</span>':''} <button class="tt-follow-btn" onclick="ttFollow(event,${i})">Follow</button></div>
+      <div class="tt-caption">${v.caption}</div>
+      <div class="tt-sound">♫ ${v.sound}</div>
+    </div>
+    <div class="tt-actions">
+      <div class="tt-avatar-wrap" onclick="ttProfileVisit(${i})">
+        <div class="tt-avatar" style="background:${v.color}">${v.user[1].toUpperCase()}</div>
+        <div class="tt-avatar-plus">+</div>
+      </div>
+      <div class="tt-action" onclick="ttLike(event,${i})">
+        <div class="tt-action-icon" id="tt-heart-${i}">🤍</div>
+        <div class="tt-action-count" id="tt-likes-${i}">${v.likes}</div>
+      </div>
+      <div class="tt-action" onclick="ttComment(event)">
+        <div class="tt-action-icon">💬</div>
+        <div class="tt-action-count">${v.comments}</div>
+      </div>
+      <div class="tt-action" onclick="ttShare(event,${i})">
+        <div class="tt-action-icon">↗️</div>
+        <div class="tt-action-count">${v.shares}</div>
+      </div>
+      <div class="tt-action" onclick="ttSave(event,${i})">
+        <div class="tt-action-icon" id="tt-save-${i}">🔖</div>
+        <div class="tt-action-count">${v.saves}</div>
+      </div>
+    </div>
+    <div class="tt-progress"><div class="tt-progress-fill" id="ttpf-${i}"></div></div>`;
+}
+
+function startTTVideo(idx) {
+  clearInterval(ttWatchTimer); ttWatchSecs=0;
+  const v = TT_VIDEOS[idx]; if (!v) return;
+  if (!S.ttSessionData[idx]) S.ttSessionData[idx]={likes:0,shares:0,saves:0,profileVisit:0,watchSecs:0,duration:v.duration};
+  ttWatchTimer = setInterval(() => {
+    ttWatchSecs++;
+    S.ttSessionData[idx].watchSecs = ttWatchSecs;
+    const pf = document.getElementById('ttpf-'+idx);
+    if (pf) pf.style.width = Math.min(100,(ttWatchSecs/v.duration)*100)+'%';
+    setEl('hud-watch', ttWatchSecs+'s / '+v.duration+'s');
+    const comp = Math.min(1, ttWatchSecs/v.duration);
+    setEl('hud-comp', Math.round(comp*100)+'%');
+    const d=S.ttSessionData[idx];
+    const eplaytime = Math.min(1, comp * 1.2);
+    const fs=Math.min(1, eplaytime*0.5 + Math.min(1,d.likes*5)*0.1 + Math.min(1,d.shares*8)*0.2 + Math.min(1,d.saves*8)*0.2);
+    setEl('hud-score', fs.toFixed(3)); S.ttUserScore=fs;
+    if (ttWatchSecs >= v.duration+2) { S.ttVideosWatched++; advanceTT(1); }
+  }, 1000);
+}
+
+function advanceTT(dir) {
+  const next = ttCurrentIdx + dir;
+  if (next < 0 || next >= TT_VIDEOS.length) {
+    if (next >= TT_VIDEOS.length && !ttRevealed) showTTReveal();
+    return;
+  }
+  TT_VIDEOS.forEach((_,i) => {
+    const el=document.getElementById('ttv-'+i);
+    if (el) el.style.transform='translateY('+((i-next)*100)+'%)';
+  });
+  if (dir===1) S.ttSwipes++;
+  ttCurrentIdx=next;
+  S.ttVideosWatched=Math.max(S.ttVideosWatched,next+1);
+  startTTVideo(next);
+  if (S.ttSwipes>=3 && !ttRevealed) setTimeout(()=>{if(!ttRevealed)showTTReveal();},1500);
+}
+
+function bindTTSwipe() {
+  const el = document.getElementById('tt-feed');
+  const newEl = el.cloneNode(true);
+  el.parentNode.replaceChild(newEl, el);
+  newEl.addEventListener('touchstart', e=>{ttStartY=e.touches[0].clientY;ttIsDragging=true;ttDragDelta=0},{passive:true});
+  newEl.addEventListener('touchmove', e=>{
+    if (!ttIsDragging||ttRevealed) return;
+    ttDragDelta=ttStartY-e.touches[0].clientY;
+    TT_VIDEOS.forEach((_,i)=>{const el2=document.getElementById('ttv-'+i);if(el2){el2.style.transform='translateY(calc('+((i-ttCurrentIdx)*100)+'% - '+ttDragDelta+'px))';el2.style.transition='none';}});
+  },{passive:true});
+  newEl.addEventListener('touchend', ()=>{
+    if (!ttIsDragging) return; ttIsDragging=false;
+    TT_VIDEOS.forEach((_,i)=>{const el2=document.getElementById('ttv-'+i);if(el2)el2.style.transition='transform .4s cubic-bezier(.4,0,.2,1)';});
+    if (Math.abs(ttDragDelta)>60) advanceTT(ttDragDelta>0?1:-1);
+    else TT_VIDEOS.forEach((_,i)=>{const el2=document.getElementById('ttv-'+i);if(el2)el2.style.transform='translateY('+((i-ttCurrentIdx)*100)+'%)';});
+  });
+  newEl.addEventListener('wheel', e=>{
+    if (ttRevealed) return; e.preventDefault();
+    if (Math.abs(e.deltaY)>30) advanceTT(e.deltaY>0?1:-1);
+  },{passive:false});
+}
+
+function showTTReveal() {
+  ttRevealed=true; clearInterval(ttWatchTimer);
+  const totalWatch=S.ttSessionData.reduce((a,b)=>a+(b?.watchSecs||0),0);
+  const totalLikes=S.ttSessionData.reduce((a,b)=>a+(b?.likes||0),0);
+  const totalShares=S.ttSessionData.reduce((a,b)=>a+(b?.shares||0),0);
+  const avgComp=S.ttSessionData.reduce((a,b)=>a+Math.min(1,(b?.watchSecs||0)/(b?.duration||1)),0)/Math.max(1,S.ttSessionData.length);
+  document.getElementById('tt-reveal-grid').innerHTML=[
+    {l:'Videos',v:S.ttVideosWatched,c:'var(--white)'},
+    {l:'Watch Time',v:totalWatch+'s',c:'var(--cyan)'},
+    {l:'Avg Completion',v:Math.round(avgComp*100)+'%',c:avgComp>=0.7?'var(--green)':'var(--gold)'},
+    {l:'Likes',v:totalLikes,c:'var(--red)'},
+    {l:'Shares',v:totalShares,c:'var(--purple)'},
+    {l:'Feed Score',v:S.ttUserScore.toFixed(3),c:'var(--gold)'},
+  ].map(r=>`<div class="reveal-cell"><div class="reveal-val" style="color:${r.c}">${r.v}</div><div class="reveal-label">${r.l}</div></div>`).join('');
+  setTimeout(()=>document.getElementById('tt-reveal').classList.add('show'),400);
+}
+
+function ttLike(e,idx){
+  e.stopPropagation();
+  const h=document.getElementById('tt-heart-'+idx);if(!h)return;
+  const liked=h.textContent==='❤️';
+  h.textContent=liked?'🤍':'❤️';
+  h.style.transform='scale(1.4)';setTimeout(()=>{h.style.transform=''},200);
+  if(!liked){S.ttLikes++;if(S.ttSessionData[idx])S.ttSessionData[idx].likes++;showToast('Like logged — Plike signal sent');}
+}
+function ttShare(e,idx){e.stopPropagation();if(S.ttSessionData[idx])S.ttSessionData[idx].shares++;showToast('Share logged — Pshare × Vshare (high weight)');}
+function ttSave(e,idx){
+  e.stopPropagation();
+  const sv=document.getElementById('tt-save-'+idx);
+  if(sv)sv.textContent=sv.textContent==='🔖'?'🏷️':'🔖';
+  if(S.ttSessionData[idx])S.ttSessionData[idx].saves++;showToast('Save logged — highest intent signal (2025)');
+}
+function ttComment(e){e.stopPropagation();showToast('Comment logged — Pcomment signal');}
+function ttFollow(e,idx){e.stopPropagation();e.target.textContent=e.target.textContent==='Follow'?'Following':'Follow';showToast('Follow logged');}
+function ttProfileVisit(idx){if(S.ttSessionData[idx])S.ttSessionData[idx].profileVisit=1;showToast('Profile visit — strong interest signal');}
+
+function setEl(id,val){const e=document.getElementById(id);if(e)e.textContent=val;}
+function fmtTime(s){return s<60?s+'s':Math.floor(s/60)+'m '+(s%60)+'s'}
+function showToast(msg){
+  const t=document.getElementById('toast');t.textContent='✓ '+msg;
+  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  S.pageEnterTimes['0']=Date.now();
+  startLanding();
+});
+</script>
+</body>
+</html>
